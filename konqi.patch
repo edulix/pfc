@@ -121,8 +121,8 @@ Index: settings/konqhtml/htmlopts.cpp
  #include "khtml_settings.h"
  #include <KPluginFactory>
  #include <KPluginLoader>
-+#include <../../../kdepim/libkleo/ui/keyrequester.h>
-+#include <../../../../include/gpgme++/key.h>
++#include <kleo/ui/keyrequester.h>
++#include <gpgme++/key.h>
  
  K_PLUGIN_FACTORY_DECLARATION(KcmKonqHtmlFactory)
  
