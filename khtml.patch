@@ -1,0 +1,258 @@
+Index: khtml/khtml_settings.h
+===================================================================
+--- khtml/khtml_settings.h	(revision 1040546)
++++ khtml/khtml_settings.h	(working copy)
+@@ -23,6 +23,11 @@
+ class KConfig;
+ class KConfigGroup;
+ 
++// TODO: do not include config-khtml.h in this important file, do some work around
++//#include "config-khtml.h"
++// #ifdef KLEO_SUPPORT
++#include <gpgme++/key.h>
++// #endif
+ #include <khtml_export.h>
+ 
+ #include <QtGui/QColor>
+@@ -250,6 +255,10 @@
+     // Whether to show passive popup when windows are blocked
+     void setJSPopupBlockerPassivePopup(bool enabled);
+     bool jsPopupBlockerPassivePopup() const;
++    
++//     #ifdef KLEO_SUPPORT
++    GpgME::Key gpgKey();
++//     #endif
+ 
+ private:
+     friend class KHTMLGlobal;
+Index: khtml/config-khtml.h.cmake
+===================================================================
+--- khtml/config-khtml.h.cmake	(revision 1040546)
++++ khtml/config-khtml.h.cmake	(working copy)
+@@ -7,5 +7,8 @@
+ /* Valgrind memcheck presence */
+ #cmakedefine HAVE_VALGRIND_MEMCHECK_H 1
+ 
++/* Support for the experimental crypt extension */
++#cmakedefine KLEO_SUPPORT 1
++
+ #endif /* CONFIG_KHTML_H */
+ 
+Index: khtml/khtml_settings.cpp
+===================================================================
+--- khtml/khtml_settings.cpp	(revision 1040546)
++++ khtml/khtml_settings.cpp	(working copy)
+@@ -109,6 +109,7 @@
+     PolicyMap domainPolicy;
+     QStringList fonts;
+     QStringList defaultFonts;
++    GpgME::Key m_gpgKey;
+ 
+     khtml::FilterSet adBlackList;
+     khtml::FilterSet adWhiteList;
+Index: khtml/tests/CMakeLists.txt
+===================================================================
+--- khtml/tests/CMakeLists.txt	(revision 1040546)
++++ khtml/tests/CMakeLists.txt	(working copy)
+@@ -1,5 +1,6 @@
+ set( EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
+ 
++include_directories( ${GPGMEPP_INCLUDES} )
+ include_directories(${KDE4_KPARTS_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/..)
+ include_directories(
+   ${CMAKE_SOURCE_DIR}/khtml/misc
+@@ -37,7 +38,8 @@
+   ${CMAKE_CURRENT_BINARY_DIR}/../css
+ )
+ kde4_add_unit_test( khtmlparttest khtmlparttest.cpp )
+-target_link_libraries( khtmlparttest ${QT_QTTEST_LIBRARY} ${KDE4_KDECORE_LIBS} khtml )
++message(STATUS "khtmlparttest ${GPGMEPP_VANILLA_LIBRARIES} ${GPGMEPP_INCLUDES}")
++target_link_libraries( khtmlparttest ${QT_QTTEST_LIBRARY} ${KDE4_KDECORE_LIBS}  ${GPGMEPP_VANILLA_LIBRARIES} khtml )
+ 
+ # msvc linker doesn't like "#define protected public"
+ if(NOT MSVC)
+@@ -49,7 +51,8 @@
+ 
+     qt4_add_resources( khtmltest_SRCS testkhtml.qrc )
+     kde4_add_executable(khtmltest TEST ${khtmltest_SRCS} )
+-    target_link_libraries( khtmltest ${KDE4_KDECORE_LIBS} khtml )
++    message(STATUS "khtmltest ${GPGMEPP_VANILLA_LIBRARIES} ${GPGMEPP_INCLUDES}")
++    target_link_libraries( khtmltest ${KDE4_KDECORE_LIBS} ${GPGMEPP_VANILLA_LIBRARIES} khtml )
+ 
+     ########### next target ###############
+ endif(NOT MSVC)
+Index: khtml/html/html_formimpl.cpp
+===================================================================
+--- khtml/html/html_formimpl.cpp	(revision 1040546)
++++ khtml/html/html_formimpl.cpp	(working copy)
+@@ -62,6 +62,20 @@
+ #include <QtCore/QDir>
+ #include <QtCore/QTextCodec>
+ 
++#ifdef KLEO_SUPPORT
++#include <kleo/ui/keyselectiondialog.h>
++#include <kleo/ui/keyrequester.h>
++#include <kleo/cryptobackendfactory.h>
++#include <kleo/cryptobackend.h>
++#include <kleo/encryptjob.h>
++#include <kleo/decryptjob.h>
++
++#include <gpgme++/key.h>
++#include <gpgme++/encryptionresult.h>
++#include <gpgme++/decryptionresult.h>
++#endif
++
++
+ // for keygen
+ #include <QtCore/QCharRef>
+ #include <ksslkeygen.h>
+@@ -1274,6 +1288,9 @@
+     : HTMLGenericFormElementImpl(doc, f)
+ {
+     m_type = TEXT;
++    #ifdef KLEO_SUPPORT
++    m_encryptionType = NONE;
++    #endif
+     m_maxLen = -1;
+     m_size = 20;
+     m_clicked = false;
+@@ -1874,6 +1891,27 @@
+     setChanged();
+ }
+ 
++
++void HTMLInputElementImpl::setEncryption(encryptionTypeEnum encryptionType)
++{
++    if (m_type != TEXT || m_type != PASSWORD) return;
++    
++    if(m_encryptionType == encryptionType) return;
++    
++    m_encryptionType = encryptionType;
++    m_encryptedValue = m_value = QString();
++}
++
++void HTMLInputElementImpl::encrypt()
++{
++
++}
++
++void HTMLInputElementImpl::decrypt()
++{
++
++}
++
+ void HTMLInputElementImpl::defaultEventHandler(EventImpl *evt)
+ {
+     if ( !m_disabled )
+Index: khtml/html/html_formimpl.h
+===================================================================
+--- khtml/html/html_formimpl.h	(revision 1040546)
++++ khtml/html/html_formimpl.h	(working copy)
+@@ -25,6 +25,7 @@
+ #ifndef HTML_FORMIMPL_H
+ #define HTML_FORMIMPL_H
+ 
++#include "../config-khtml.h"
+ #include "html/html_elementimpl.h"
+ #include "html/html_imageimpl.h"
+ #include "dom/html_element.h"
+@@ -268,6 +269,11 @@
+         IMAGE,
+         BUTTON
+     };
++    
++    enum encryptionTypeEnum {
++        NONE,
++        GPG
++    };
+ 
+     HTMLInputElementImpl(DocumentImpl *doc, HTMLFormElementImpl *f = 0);
+     virtual ~HTMLInputElementImpl();
+@@ -292,6 +298,12 @@
+ 
+     DOMString value() const;
+     void setValue(DOMString val);
++    
++    #ifdef KLEO_SUPPORT
++    bool isEncrypted() const { return m_encryptionType != NONE; }
++    encryptionTypeEnum encryptionType() const { return KDE_CAST_BF_ENUM(encryptionTypeEnum, m_encryptionType); }
++    void setEncryption(encryptionTypeEnum encryptionType);
++    #endif
+ 
+     DOMString valueWithDefault() const;
+ 
+@@ -333,7 +345,12 @@
+     void setSelectionRange(long start, long end);
+ protected:
+     void parseType(const DOMString& t);
++    void encrypt();
++    void decrypt();
+ 
++    #ifdef KLEO_SUPPORT
++    DOMString m_encryptedValue;
++    #endif
+     DOMString m_value;
+     int       xPos;
+     short     m_maxLen;
+@@ -351,6 +368,9 @@
+     bool m_autocomplete : 1;
+     bool m_inited : 1;
+     bool m_unsubmittedFormChange : 1;
++    #ifdef KLEO_SUPPORT
++    KDE_BF_ENUM(encryptionTypeEnum) m_encryptionType : 1;
++    #endif
+ };
+ 
+ // -------------------------------------------------------------------------
+Index: khtml/CMakeLists.txt
+===================================================================
+--- khtml/CMakeLists.txt	(revision 1040546)
++++ khtml/CMakeLists.txt	(working copy)
+@@ -10,8 +10,6 @@
+ add_definitions(-DWTF_PLATFORM_QT)
+ ########svg#########
+ 
+-add_subdirectory( tests )
+-
+ find_package(JPEG)
+ macro_log_feature(JPEG_FOUND "libjpeg" "A library for reading and writing JPEG image files" "http://www.ijg.org" TRUE "" "Required by khtml.")
+ 
+@@ -19,8 +17,18 @@
+ macro_log_feature(GIF_FOUND "giflib" "A library for manipulating GIF format image files" "http://sourceforge.net/projects/giflib" TRUE "" "Required by khtml.")
+ 
+ find_package(PNG)
+-macro_log_feature(PNG_FOUND "libpng" "A library for manipulating PNG image format files" "http://www.libpng.org/pub/png" TRUE "" "Required by khtml.")
++macro_log_feature(PNG_FOUND "libpng" "A KDEPIM library for manipulating PNG image format files" "http://www.libpng.org/pub/png" TRUE "" "Required by khtml.")
+ 
++find_package(Gpgmepp)
++find_package(Kleo)
++if(KLEO_INCLUDES)
++    set(KLEO_SUPPORT 1)
++endif(KLEO_INCLUDES)
++macro_log_feature(GPGMEPP_INCLUDES "gpgme++" "A library for encryption handling ${GPGMEPP_VANILLA_LIBRARIES}" "http://www.kdab.net" TRUE "" "Optional for khtml.")
++macro_log_feature(KLEO_SUPPORT "libkleo" "A library for encryption handling" "http://www.kde.org" TRUE "" "Optional for khtml.")
++
++add_subdirectory( tests )
++
+ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${KDE4_ENABLE_EXCEPTIONS}")
+ 
+ configure_file(config-khtml.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-khtml.h )
+@@ -414,6 +422,7 @@
+ add_subdirectory( pics )
+ add_subdirectory( ecma )
+ 
++include_directories( ${KLEO_INCLUDES} ${GPGMEPP_INCLUDES} )
+ include_directories( ${KDE4_PHONON_INCLUDES} ${KDE4_KPARTS_INCLUDES} )
+ include_directories( ${CMAKE_BINARY_DIR}/kio/kssl )
+ include_directories( ${KDE4_KJS_INCLUDES} ${CMAKE_SOURCE_DIR}/kimgio ${CMAKE_SOURCE_DIR}/kio/kssl ${CMAKE_SOURCE_DIR}/interfaces ${CMAKE_SOURCE_DIR}/interfaces/kregexpeditor)
+@@ -509,8 +518,8 @@
+ 
+ kde4_add_library(khtml SHARED ${khtml_LIB_SRCS})
+ 
+-target_link_libraries(khtml ${KDE4_KPARTS_LIBS} ktexteditor kjs ${KDE4_PHONON_LIBS} ${JPEG_LIBRARIES} ${GIF_LIBRARIES} ${PNG_LIBRARIES} ${X11_LIBRARIES})
+-target_link_libraries(khtml LINK_INTERFACE_LIBRARIES kparts kjs kio kdeui kdecore ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY} )
++target_link_libraries(khtml ${KDE4_KPARTS_LIBS} ktexteditor kjs ${KDE4_PHONON_LIBS} ${KLEO_LIBRARIES} ${GPGMEPP_VANILLA_LIBRARIES} ${JPEG_LIBRARIES} ${GIF_LIBRARIES} ${PNG_LIBRARIES} ${X11_LIBRARIES})
++target_link_libraries(khtml LINK_INTERFACE_LIBRARIES kparts kjs kio kdeui kdecore ${QT_QTCORE_LIBRARY} ${QT_QTGUI_LIBRARY})
+ 
+ set_target_properties(khtml PROPERTIES VERSION ${KDE_NON_GENERIC_LIB_VERSION}
+                                        SOVERSION ${KDE_NON_GENERIC_LIB_SOVERSION}

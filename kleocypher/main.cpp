@@ -17,14 +17,15 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA .        *
  ***************************************************************************/
 #include "ui_mainwindowclass.h"
-
+#include "config.h"
+#ifdef HAVE_KLEO_SUPPORT
 #include <kleo/ui/keyselectiondialog.h>
 #include <kleo/ui/keyrequester.h>
 #include <kleo/cryptobackendfactory.h>
 #include <kleo/cryptobackend.h>
 #include <kleo/encryptjob.h>
 #include <kleo/decryptjob.h>
-
+#endif
 #include <gpgme++/key.h>
 #include <gpgme++/encryptionresult.h>
 #include <gpgme++/decryptionresult.h>
@@ -44,8 +45,10 @@
 using namespace Kleo;
 using namespace GpgME;
 
-class KleoDialog : public QMainWindow {
+class KleoDialog : public QMainWindow
+{
     Q_OBJECT
+    
 public:
     KleoDialog(QWidget *parent = 0)
         : QMainWindow(parent), ui(new Ui::MainWindowClass), backend(CryptoBackendFactory::instance()->protocol( OpenPGP ))
@@ -83,6 +86,7 @@ public:
                 statusBar()->showMessage(tr("No key selected"));
             }       
         }
+        
         void encrypt()
         {
             QByteArray plainText = ui->textEdit->toPlainText().toAscii();
@@ -102,6 +106,7 @@ public:
             ui->textEdit->setPlainText(cipherText);
             statusBar()->clearMessage();
         }
+        
         void decrypt()
         {
             QByteArray cipherText = ui->textEdit->toPlainText().toAscii();
@@ -124,7 +129,8 @@ public:
         GpgME::Key gpgkey;
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     KAboutData *data = new KAboutData("kleocypher", "kleocypher", ki18n("kleocypher"), "1.0",
                                       ki18n("A small application to test libkleo functionality"),
                                       KAboutData::License_GPL , ki18n("2009 Eduardo Robles Elvira"));

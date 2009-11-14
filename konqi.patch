@@ -1,0 +1,274 @@
+Index: src/konqextendedbookmarkmenuhelper.h
+===================================================================
+Index: settings/konqhtml/htmlopts.h
+===================================================================
+--- settings/konqhtml/htmlopts.h	(revision 1048061)
++++ settings/konqhtml/htmlopts.h	(working copy)
+@@ -11,6 +11,8 @@
+ #include <QtGui/QCheckBox>
+ #include <QtGui/QLineEdit>
+ #include <QtGui/QComboBox>
++#include <QtGui/QLabel>
++#include <QtGui/QPushButton>
+ 
+ //-----------------------------------------------------------------------------
+ // The "Misc Options" Tab for the HTML view contains :
+@@ -21,12 +23,22 @@
+ // ... there is room for others :))
+ 
+ 
+-
++#include "config-konqueror.h"
+ #include <kcmodule.h>
+ #include <ksharedconfig.h>
+ class KIntNumInput;
+ class QGroupBox;
+ 
++
++namespace Kleo {
++  class EncryptionKeyRequester;
++  class SigningKeyRequester;
++}
++
++namespace GpgME {
++    class Key;
++}
++
+ class KMiscHTMLOptions : public KCModule
+ {
+     Q_OBJECT
+@@ -36,8 +48,9 @@
+     ~KMiscHTMLOptions();
+     virtual void load();
+     virtual void save();
+-    virtual void defaults();
+-
++    virtual
++    void defaults();
++    
+ private:
+     KSharedConfig::Ptr m_pConfig;
+     QString  m_groupname;
+@@ -51,6 +64,10 @@
+     QCheckBox* m_pOnlyMarkedBookmarksCheckBox;
+     QCheckBox* m_pAccessKeys;
+     KIntNumInput* m_pMaxFormCompletionItems;
++#ifdef KLEO_SUPPORT
++    Kleo::SigningKeyRequester    *m_PGPSigningKeyRequester;
++    Kleo::EncryptionKeyRequester *m_PGPEncryptionKeyRequester;
++#endif
+ };
+ 
+ #endif // HTMLOPTS_H
+Index: settings/konqhtml/CMakeLists.txt
+===================================================================
+--- settings/konqhtml/CMakeLists.txt	(revision 1048061)
++++ settings/konqhtml/CMakeLists.txt	(working copy)
+@@ -1,5 +1,7 @@
+ include_directories(
+     ${CMAKE_CURRENT_SOURCE_DIR}/css
++    ${KLEO_INCLUDES}
++    ${QGPGME_INCLUDES}
+     )
+ 
+ 
+@@ -28,11 +30,12 @@
+     css/cssconfig.ui
+     )
+ 
++configure_file(config-konqueror.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-konqueror.h )
++
+ kde4_add_plugin(kcm_konqhtml ${kcm_konqhtml_PART_SRCS})
+ 
++target_link_libraries(kcm_konqhtml ${KDE4_KHTML_LIBS} ${KLEO_LIBRARIES} ${GPGMEPP_VANILLA_LIBRARIES})
+ 
+-target_link_libraries(kcm_konqhtml ${KDE4_KHTML_LIBS} )
+-
+ install(TARGETS kcm_konqhtml  DESTINATION ${PLUGIN_INSTALL_DIR} )
+ 
+ ########### install files ###############
+Index: settings/konqhtml/htmlopts.cpp
+===================================================================
+--- settings/konqhtml/htmlopts.cpp	(revision 1048061)
++++ settings/konqhtml/htmlopts.cpp	(working copy)
+@@ -13,6 +13,7 @@
+ // Qt
+ #include <QtGui/QGroupBox>
+ #include <QtGui/QFormLayout>
++#include <QtGui/QGridLayout>
+ #include <QtGui/QLabel>
+ #include <QtGui/QPushButton>
+ #include <QtDBus/QDBusMessage>
+@@ -25,14 +26,34 @@
+ #include <knuminput.h>
+ #include <kseparator.h>
+ #include <kapplication.h>
++#include <kdebug.h>
+ 
++#ifdef KLEO_SUPPORT
++#include <gpgme++/key.h>
++#include <kleo/ui/keyselectiondialog.h>
++#include <kleo/ui/keyrequester.h>
++#include <kleo/cryptobackendfactory.h>
++#include <kleo/cryptobackend.h>
++#include <kleo/encryptjob.h>
++#include <kleo/decryptjob.h>
++#include <gpgme++/encryptionresult.h>
++#include <gpgme++/decryptionresult.h>
++#endif
++
+ // Local
+ #include "khtml_settings.h"
+ #include <KPluginFactory>
+ #include <KPluginLoader>
++#include <../../../kdepim/libkleo/ui/keyrequester.h>
++#include <../../../../include/gpgme++/key.h>
+ 
+ K_PLUGIN_FACTORY_DECLARATION(KcmKonqHtmlFactory)
+ 
++#ifdef KLEO_SUPPORT
++using namespace Kleo;
++using namespace GpgME;
++#endif
++
+ //-----------------------------------------------------------------------------
+ 
+ KMiscHTMLOptions::KMiscHTMLOptions(QWidget *parent, const QVariantList&)
+@@ -135,6 +156,65 @@
+     connect(m_pAccessKeys, SIGNAL(toggled(bool)), SLOT(changed()));
+     fl->addRow( m_pAccessKeys);
+ 
++    
++    #ifdef KLEO_SUPPORT
++    row = -1;
++    QGroupBox *bgCryptography = new QGroupBox( i18nc("@title:group","Cryptography"));
++    QGridLayout *glay = new QGridLayout( bgCryptography );
++    glay->setColumnStretch( 1, 1 );
++    
++    // "OpenPGP Signature Key" requester and label:
++    ++row;
++    m_PGPSigningKeyRequester = new Kleo::SigningKeyRequester( false, Kleo::SigningKeyRequester::OpenPGP, bgCryptography );
++    m_PGPSigningKeyRequester->dialogButton()->setText( i18n("Chang&e...") );
++    m_PGPSigningKeyRequester->setDialogCaption( i18n("Your OpenPGP Signature Key") );
++    QString msg = i18n("Select the OpenPGP key which should be used to "
++               "digitally sign your messages.");
++    m_PGPSigningKeyRequester->setDialogMessage( msg );
++
++    msg = i18n("<qt><p>The OpenPGP key you choose here will be used "
++               "to digitally sign messages. You can also use GnuPG keys.</p>"
++               "<p>You can leave this blank, but Konqueror will not be able "
++               "to digitally sign messages using OpenPGP; "
++               "normal mail functions will not be affected.</p>"
++               "<p>You can find out more about keys at <a>http://www.gnupg.org</a></p></qt>");
++
++    QLabel *label = new QLabel( i18n("OpenPGP signing key:"), bgCryptography );
++    label->setBuddy( m_PGPSigningKeyRequester );
++    m_PGPSigningKeyRequester->setWhatsThis( msg );
++    label->setWhatsThis( msg );
++
++    glay->addWidget( label, row, 0 );
++    glay->addWidget( m_PGPSigningKeyRequester, row, 1 );
++    connect(m_PGPSigningKeyRequester, SIGNAL(changed()), SLOT(changed()));
++
++
++    // "OpenPGP Encryption Key" requester and label:
++    ++row;
++    m_PGPEncryptionKeyRequester = new Kleo::EncryptionKeyRequester( false, Kleo::EncryptionKeyRequester::OpenPGP, bgCryptography );
++    m_PGPEncryptionKeyRequester->dialogButton()->setText( i18n("Chang&e...") );
++    m_PGPEncryptionKeyRequester->setDialogCaption( i18n("Your OpenPGP Encryption Key") );
++    msg = i18n("Select the OpenPGP key which should be used when encrypting ");
++    m_PGPEncryptionKeyRequester->setDialogMessage( msg );
++
++    msg = i18n("<qt><p>The OpenPGP key you choose here will be used "
++               "to encrypt messages to yourself and for the \"Attach My Public Key\" "
++               "feature in the composer. You can also use GnuPG keys.</p>"
++               "<p>You can leave this blank, but Konqueror will not be able "
++               "to encrypt copies of outgoing messages to you using OpenPGP; "
++               "normal functions will not be affected.</p>"
++               "<p>You can find out more about keys at <a>http://www.gnupg.org</a></p></qt>");
++    label = new QLabel( i18n("OpenPGP encryption key:"), bgCryptography );
++    label->setBuddy( m_PGPEncryptionKeyRequester );
++    m_PGPEncryptionKeyRequester->setWhatsThis( msg );
++    label->setWhatsThis( msg );
++
++    glay->addWidget( label, row, 0 );
++    glay->addWidget( m_PGPEncryptionKeyRequester, row, 1 );
++    lay->addWidget(bgCryptography);
++    connect(m_PGPEncryptionKeyRequester, SIGNAL(changed()), SLOT(changed()));
++    #endif
++    
+     lay->addStretch(5);
+ 
+     emit changed(false);
+@@ -170,7 +250,15 @@
+     m_pFormCompletionCheckBox->setChecked( cg.readEntry( "FormCompletion", true ) );
+     m_pMaxFormCompletionItems->setValue( cg.readEntry( "MaxFormCompletionItems", 10 ) );
+     m_pMaxFormCompletionItems->setEnabled( m_pFormCompletionCheckBox->isChecked() );
++    
++    #ifdef KLEO_SUPPORT
++    SET_GROUP("Cryptography");
+ 
++    kDebug() << "PGPSigningKey" << khtmlrc.readEntry("PGPSigningKey", QString());
++    m_PGPSigningKeyRequester->setFingerprint(khtmlrc.readEntry("PGPSigningKey", QString()));
++    m_PGPEncryptionKeyRequester->setFingerprint(khtmlrc.readEntry("PGPEncryptionKey", QString()));
++    #endif
++    
+     // Reads in the value of m_accessKeysEnabled by calling accessKeysEnabled() in khtml_settings.cpp
+     KHTMLSettings settings;
+     m_pAccessKeys->setChecked( settings.accessKeysEnabled() );
+@@ -202,17 +290,26 @@
+     cg.writeEntry( "MaxFormCompletionItems", m_pMaxFormCompletionItems->value() );
+ 
+     cg.sync();
+-
++    
+     // Writes the value of m_pAccessKeys into khtmlrc to affect all applications using KHTML
+     KConfig _khtmlconfig("khtmlrc", KConfig::NoGlobals);
+     KConfigGroup khtmlconfig(&_khtmlconfig, "Access Keys");
+     khtmlconfig.writeEntry( "Enabled", m_pAccessKeys->isChecked() );
+     khtmlconfig.sync();
++    
++    #ifdef KLEO_SUPPORT
++    KConfigGroup cryptoconfig(&_khtmlconfig, "Cryptography");
++    kDebug() << "PGPSigningKey" << m_PGPSigningKeyRequester->fingerprint();
++    cryptoconfig.writeEntry("PGPSigningKey", m_PGPSigningKeyRequester->fingerprint());
++    cryptoconfig.writeEntry("PGPEncryptionKey", m_PGPEncryptionKeyRequester->fingerprint());
++    cryptoconfig.sync();
++    #endif
+ 
+     KConfigGroup config(KSharedConfig::openConfig("kbookmarkrc", KConfig::NoGlobals), "Bookmarks");
+     config.writeEntry("AdvancedAddBookmarkDialog", m_pAdvancedAddBookmarkCheckBox->isChecked());
+     config.writeEntry("FilteredToolbar", m_pOnlyMarkedBookmarksCheckBox->isChecked());
+     config.sync();
++    
+     // Send signal to all konqueror instances
+     QDBusMessage message =
+         QDBusMessage::createSignal("/KonqMain", "org.kde.Konqueror.Main", "reparseConfiguration");
+@@ -226,4 +323,3 @@
+ 
+ 
+ #include "htmlopts.moc"
+-
+Index: settings/konqhtml/config-konqueror.h.cmake
+===================================================================
+--- settings/konqhtml/config-konqueror.h.cmake	(revision 0)
++++ settings/konqhtml/config-konqueror.h.cmake	(revision 0)
+@@ -0,0 +1,3 @@
++
++/* Support for the experimental crypt extension */
++#cmakedefine KLEO_SUPPORT 1
+Index: CMakeLists.txt
+===================================================================
+--- CMakeLists.txt	(revision 1048061)
++++ CMakeLists.txt	(working copy)
+@@ -1,3 +1,10 @@
++find_package(Gpgmepp)
++find_package(Kleo)
++if(KLEO_INCLUDES)
++    set(KLEO_SUPPORT 1)
++endif(KLEO_INCLUDES)
++macro_log_feature(GPGMEPP_INCLUDES "gpgme++" "A library for encryption handling" "http://www.kdab.net" TRUE "" "Optional for khtml.")
++macro_log_feature(KLEO_SUPPORT "libkleo" "A library for encryption handling" "http://www.kde.org" TRUE "" "Optional for khtml.")
+ 
+ add_definitions(-D_LARGEFILE64_SOURCE )
+ 
