@@ -1,34 +1,35 @@
-Index: khtml/khtml_settings.h
+Index: khtml_settings.h
 ===================================================================
---- khtml/khtml_settings.h	(revision 1040546)
-+++ khtml/khtml_settings.h	(working copy)
+--- khtml_settings.h	(revision 1048061)
++++ khtml_settings.h	(working copy)
 @@ -23,6 +23,11 @@
  class KConfig;
  class KConfigGroup;
  
 +// TODO: do not include config-khtml.h in this important file, do some work around
-+//#include "config-khtml.h"
-+// #ifdef KLEO_SUPPORT
++#include "config-khtml.h"
++#ifdef KLEO_SUPPORT
 +#include <gpgme++/key.h>
-+// #endif
++#endif
  #include <khtml_export.h>
  
  #include <QtGui/QColor>
-@@ -250,6 +255,10 @@
+@@ -250,6 +255,11 @@
      // Whether to show passive popup when windows are blocked
      void setJSPopupBlockerPassivePopup(bool enabled);
      bool jsPopupBlockerPassivePopup() const;
 +    
-+//     #ifdef KLEO_SUPPORT
-+    GpgME::Key gpgKey();
-+//     #endif
++#ifdef KLEO_SUPPORT
++    GpgME::Key pgpSigningKey();
++    GpgME::Key pgpEncryptionKey();
++#endif
  
  private:
      friend class KHTMLGlobal;
-Index: khtml/config-khtml.h.cmake
+Index: config-khtml.h.cmake
 ===================================================================
---- khtml/config-khtml.h.cmake	(revision 1040546)
-+++ khtml/config-khtml.h.cmake	(working copy)
+--- config-khtml.h.cmake	(revision 1048061)
++++ config-khtml.h.cmake	(working copy)
 @@ -7,5 +7,8 @@
  /* Valgrind memcheck presence */
  #cmakedefine HAVE_VALGRIND_MEMCHECK_H 1
@@ -38,22 +39,157 @@ Index: khtml/config-khtml.h.cmake
 +
  #endif /* CONFIG_KHTML_H */
  
-Index: khtml/khtml_settings.cpp
+Index: khtml_settings.cpp
 ===================================================================
---- khtml/khtml_settings.cpp	(revision 1040546)
-+++ khtml/khtml_settings.cpp	(working copy)
-@@ -109,6 +109,7 @@
+--- khtml_settings.cpp	(revision 1048061)
++++ khtml_settings.cpp	(working copy)
+@@ -29,6 +29,15 @@
+ #include <kmessagebox.h>
+ #include <khtml_filter_p.h>
+ 
++#ifdef KLEO_SUPPORT
++#include <kleo/keylistjob.h>
++#include <kleo/cryptplugwrapper.h>
++#include <kleo/cryptobackendfactory.h>
++
++#include <gpgme++/keylistresult.h>
++#include <gpgme++/key.h>
++#endif
++
+ #include <QtGui/QFontDatabase>
+ 
+ /**
+@@ -109,6 +118,14 @@
      PolicyMap domainPolicy;
      QStringList fonts;
      QStringList defaultFonts;
-+    GpgME::Key m_gpgKey;
++    
++#ifdef KLEO_SUPPORT    
++    QString m_PGPSigningKeyFingerprint;
++    QString m_PGPEncryptionKeyFingerprint;
++    
++    GpgME::Key m_PGPEncryptionKey;
++    GpgME::Key m_PGPSigningKey;
++#endif
  
      khtml::FilterSet adBlackList;
      khtml::FilterSet adWhiteList;
-Index: khtml/tests/CMakeLists.txt
+@@ -316,6 +333,16 @@
+         d->m_bBackRightClick = cg.readEntry( "BackRightClick", false );
+   }
+ 
++  #ifdef KLEO_SUPPORT
++  KConfigGroup cgCrypto(config,"Cryptography" );
++  if (reset || cgCrypto.exists() ) {
++      d->m_PGPSigningKeyFingerprint = cgCrypto.readEntry( "PGPSigningKey", QString());
++      d->m_PGPEncryptionKeyFingerprint = cgCrypto.readEntry( "PGPEncryptionKey", QString());
++      d->m_PGPSigningKey = GpgME::Key::null;
++      d->m_PGPEncryptionKey = GpgME::Key::null;
++  }
++  #endif
++  
+   KConfigGroup cgAccess(config,"Access Keys" );
+   if (reset || cgAccess.exists() ) {
+       d->m_accessKeysEnabled = cgAccess.readEntry( "Enabled", true );
+@@ -1093,3 +1120,53 @@
+ {
+     return d->m_jsPopupBlockerPassivePopup;
+ }
++
++#ifdef KLEO_SUPPORT
++GpgME::Key KHTMLSettings::pgpSigningKey()
++{
++    if (d->m_PGPSigningKeyFingerprint.isNull()) {
++        return GpgME::Key::null;
++    }
++    
++    if (d->m_PGPSigningKey.isNull()) {
++        return d->m_PGPSigningKey;
++    }
++    
++    // Obtain the keys associated with the given fingerprint
++    std::vector<GpgME::Key> keys;
++    Kleo::KeyListJob * job = Kleo::CryptoBackendFactory::instance()->openpgp()->keyListJob( false );
++    job->exec(QStringList(d->m_PGPSigningKeyFingerprint), true, keys);
++    
++    if (!keys.empty()) {
++        d->m_PGPSigningKey = keys.front();
++    } else {
++        d->m_PGPSigningKeyFingerprint = QString();
++    }
++    
++    return d->m_PGPSigningKey;
++}
++
++GpgME::Key KHTMLSettings::pgpEncryptionKey()
++{
++    if (d->m_PGPEncryptionKeyFingerprint.isNull()) {
++        return GpgME::Key::null;
++    }
++    
++    if (d->m_PGPSigningKey.isNull()) {
++        return d->m_PGPEncryptionKey;
++    }
++    
++    // Obtain the keys associated with the given fingerprint
++    std::vector<GpgME::Key> keys;
++    Kleo::KeyListJob * job = Kleo::CryptoBackendFactory::instance()->openpgp()->keyListJob( false );
++    job->exec(QStringList(d->m_PGPEncryptionKeyFingerprint), true, keys);
++    
++    if (!keys.empty()) {
++        d->m_PGPEncryptionKey = keys.front();
++    } else {
++        d->m_PGPEncryptionKeyFingerprint = QString();
++    }
++    
++    return d->m_PGPEncryptionKey;
++}
++#endif
+Index: misc/htmlnames.h
 ===================================================================
---- khtml/tests/CMakeLists.txt	(revision 1040546)
-+++ khtml/tests/CMakeLists.txt	(working copy)
+--- misc/htmlnames.h	(revision 1048061)
++++ misc/htmlnames.h	(working copy)
+@@ -5,6 +5,7 @@
+ #define HTMLNames_h
+ 
+ #include "misc/idstring.h"
++#include "../config-khtml.h"
+ 
+ #define XML_NAMESPACE "http://www.w3.org/2000/xmlns/"
+ #define SVG_NAMESPACE "http://www.w3.org/2000/svg"
+@@ -615,6 +616,12 @@
+ #define ATTR_XLINK_ARCROLE ((DOM::xlinkNamespace << 16) | 554)
+ #define ATTR_XLINK_ROLE ((DOM::xlinkNamespace << 16) | 555)
+ #define ATTR_XLINK_SHOW ((DOM::xlinkNamespace << 16) | 556)
++
++#ifdef KLEO_SUPPORT
++#define ATTR_ENCRYPTION ((DOM::xlinkNamespace << 16) | 557)
++#define ATTR_ENCRYPTION_KEY ((DOM::xlinkNamespace << 16) | 558)
++#define ATTR_SIGNING_KEY ((DOM::xlinkNamespace << 16) | 559)
++#endif
+ #define ID_LAST_TAG 110
+ #define ID_CLOSE_TAG 16384
+ #define ATTR_LAST_ATTR 257
+Index: misc/htmlnames.cpp
+===================================================================
+--- misc/htmlnames.cpp	(revision 1048061)
++++ misc/htmlnames.cpp	(working copy)
+@@ -580,6 +580,11 @@
+     s_idTable->addStaticMapping(localNamePart(ATTR_XLINK_ARCROLE), "arcrole");
+     s_idTable->addStaticMapping(localNamePart(ATTR_XLINK_ROLE), "role");
+     s_idTable->addStaticMapping(localNamePart(ATTR_XLINK_SHOW), "show");
++    #ifdef KLEO_SUPPORT
++    s_idTable->addStaticMapping(localNamePart(ATTR_ENCRYPTION), "encryption");
++    s_idTable->addStaticMapping(localNamePart(ATTR_ENCRYPTION_KEY), "encryption-key");
++    s_idTable->addStaticMapping(localNamePart(ATTR_SIGNING_KEY), "signing-key");
++    #endif
+     return s_idTable;
+ }
+ 
+Index: tests/CMakeLists.txt
+===================================================================
+--- tests/CMakeLists.txt	(revision 1048061)
++++ tests/CMakeLists.txt	(working copy)
 @@ -1,5 +1,6 @@
  set( EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
  
@@ -61,35 +197,41 @@ Index: khtml/tests/CMakeLists.txt
  include_directories(${KDE4_KPARTS_INCLUDES} ${CMAKE_CURRENT_SOURCE_DIR}/..)
  include_directories(
    ${CMAKE_SOURCE_DIR}/khtml/misc
-@@ -37,7 +38,8 @@
+@@ -37,10 +38,10 @@
    ${CMAKE_CURRENT_BINARY_DIR}/../css
  )
  kde4_add_unit_test( khtmlparttest khtmlparttest.cpp )
 -target_link_libraries( khtmlparttest ${QT_QTTEST_LIBRARY} ${KDE4_KDECORE_LIBS} khtml )
-+message(STATUS "khtmlparttest ${GPGMEPP_VANILLA_LIBRARIES} ${GPGMEPP_INCLUDES}")
 +target_link_libraries( khtmlparttest ${QT_QTTEST_LIBRARY} ${KDE4_KDECORE_LIBS}  ${GPGMEPP_VANILLA_LIBRARIES} khtml )
  
  # msvc linker doesn't like "#define protected public"
- if(NOT MSVC)
-@@ -49,7 +51,8 @@
+-if(NOT MSVC)
++if(NOT MSVC AND NOT KLEO_SUPPORT)
+ 
+     ########### next target ###############
+     set(khtmltest_SRCS
+@@ -49,7 +50,7 @@
  
      qt4_add_resources( khtmltest_SRCS testkhtml.qrc )
      kde4_add_executable(khtmltest TEST ${khtmltest_SRCS} )
 -    target_link_libraries( khtmltest ${KDE4_KDECORE_LIBS} khtml )
-+    message(STATUS "khtmltest ${GPGMEPP_VANILLA_LIBRARIES} ${GPGMEPP_INCLUDES}")
 +    target_link_libraries( khtmltest ${KDE4_KDECORE_LIBS} ${GPGMEPP_VANILLA_LIBRARIES} khtml )
  
      ########### next target ###############
  endif(NOT MSVC)
-Index: khtml/html/html_formimpl.cpp
+Index: html/html_formimpl.cpp
 ===================================================================
---- khtml/html/html_formimpl.cpp	(revision 1040546)
-+++ khtml/html/html_formimpl.cpp	(working copy)
-@@ -62,6 +62,20 @@
+--- html/html_formimpl.cpp	(revision 1048061)
++++ html/html_formimpl.cpp	(working copy)
+@@ -62,6 +62,24 @@
  #include <QtCore/QDir>
  #include <QtCore/QTextCodec>
  
 +#ifdef KLEO_SUPPORT
++#include <kleo/keylistjob.h>
++#include <kleo/cryptplugwrapper.h>
++
++#include <gpgme++/keylistresult.h>
 +#include <kleo/ui/keyselectiondialog.h>
 +#include <kleo/ui/keyrequester.h>
 +#include <kleo/cryptobackendfactory.h>
@@ -106,48 +248,179 @@ Index: khtml/html/html_formimpl.cpp
  // for keygen
  #include <QtCore/QCharRef>
  #include <ksslkeygen.h>
-@@ -1274,6 +1288,9 @@
+@@ -1274,6 +1292,10 @@
      : HTMLGenericFormElementImpl(doc, f)
  {
      m_type = TEXT;
 +    #ifdef KLEO_SUPPORT
 +    m_encryptionType = NONE;
++    m_encryptedValueSynced = false;
 +    #endif
      m_maxLen = -1;
      m_size = 20;
      m_clicked = false;
-@@ -1874,6 +1891,27 @@
+@@ -1411,6 +1433,11 @@
+         // Don't mess with those...
+         break;
+     default:
++        #ifdef KLEO_SUPPORT
++        if (m_encryptionType != NONE) {
++            break;
++        }
++        #endif
+         setValue(state.endsWith('N') ? DOMString() : DOMString(state.left(state.length()-2)));
+         m_unsubmittedFormChange = (state.right(1) == "M");
+         break;
+@@ -1441,10 +1468,28 @@
+     case ATTR_AUTOCOMPLETE:
+         m_autocomplete = strcasecmp( attr->value(), "off" );
+         break;
++#ifdef KLEO_SUPPORT
++    case ATTR_ENCRYPTION:
++        if (strcasecmp(attr->value(), "gpg") == 0) {
++            m_encryptionType = GPG;
++            m_value = "";
++        }
++        break;
++    case ATTR_ENCRYPTION_KEY:
++        m_PGPEncryptionKeyFingerprint = DOMString(/*attr->value()*/);
++    case ATTR_SIGNING_KEY:
++        m_PGPSigningKeyFingerprint = DOMString(attr->value());
++        break;
++#endif
+     case ATTR_TYPE:
+         parseType(attr->value());
+         break;
+     case ATTR_VALUE:
++#ifdef KLEO_SUPPORT
++        if (m_encryptionType != NONE) {
++            break;
++        }
++#endif
+         if (m_value.isNull()) {// We only need to setChanged if the form is looking
+             setChanged();      // at the default value right now.
+             if (m_type == TEXT && m_render)
+@@ -1512,7 +1557,13 @@
+     const HTMLInputElementImpl *e =
+         static_cast<const HTMLInputElementImpl*>(source);
+ 
++#ifdef KLEO_SUPPORT
++    if (m_encryptionType == NONE) {
++        m_value = e->m_value;
++    }
++#else
+     m_value = e->m_value;
++#endif
+     m_checked = e->m_checked;
+     // ### copy more?
+ 
+@@ -1856,6 +1907,16 @@
+     if (val.isNull() && m_type != FILE)
+         val = getAttribute(ATTR_VALUE);
+ 
++    #ifdef KLEO_SUPPORT
++    if (!m_encryptedValueSynced) {
++        // Next lines are a HUGE HACK equivalent to calling to handleEncrytion(); but casting away constness 
++        void (HTMLInputElementImpl::*f)() = reinterpret_cast<void (HTMLInputElementImpl::*)()>(&HTMLInputElementImpl::handleEncryption);
++        DOM::HTMLInputElementImpl *this_unconst = const_cast<DOM::HTMLInputElementImpl*>(this);
++        (this_unconst->*f)();
++    }
++    val = m_encryptedValue;
++    #endif
++    
+     return val;
+ }
+ 
+@@ -1863,6 +1924,8 @@
+ void HTMLInputElementImpl::setValue(DOMString val)
+ {
+     if (m_type == FILE) return;
++    
++    if(m_type == TEXT)
+ 
+     m_value = val;
+     // ### set attribute for other types, too. no need for m_value
+@@ -1874,6 +1937,76 @@
      setChanged();
  }
  
++#ifdef KLEO_SUPPORT
 +
-+void HTMLInputElementImpl::setEncryption(encryptionTypeEnum encryptionType)
++using namespace Kleo;
++using namespace GpgME;
++
++void HTMLInputElementImpl::setPlainTextValue(DOMString _value)
 +{
-+    if (m_type != TEXT || m_type != PASSWORD) return;
++    // When calling to this function you supposedly only do that because it's of
++    // TEXT type
++    m_value = _value;
++    if (m_render) {
++        m_render->updateFromElement();
++    }
 +    
-+    if(m_encryptionType == encryptionType) return;
++    setChanged();
++    if (m_encryptionType != NONE) {
++        m_encryptedValueSynced = false;
++    }
++}
++
++DOMString HTMLInputElementImpl::plainTextvalue() const
++{
++    return m_value;
++}
++
++GpgME::Key obtainKeyFromFingerprint(DOMString fingerprint)
++{
++    // Obtain the keys associated with the given fingerprint
++    std::vector<GpgME::Key> keys;
++    Kleo::KeyListJob * job = Kleo::CryptoBackendFactory::instance()->openpgp()->keyListJob( false );
++    job->exec(QStringList(fingerprint.string()), true, keys);
 +    
-+    m_encryptionType = encryptionType;
-+    m_encryptedValue = m_value = QString();
++    Q_ASSERT_X(!keys.empty(), "form encryption", "key not found");
++    
++    return keys.front();
 +}
 +
-+void HTMLInputElementImpl::encrypt()
++void HTMLInputElementImpl::handleEncryption()
 +{
-+
++    if (m_encryptedValueSynced || m_type != TEXT || m_encryptionType != GPG) {
++        return;
++    }
++    
++    if (!m_PGPEncryptionKeyFingerprint.isEmpty()) {
++        if (m_PGPEncryptionKey.isNull()) {
++            m_PGPEncryptionKey = obtainKeyFromFingerprint(m_PGPEncryptionKeyFingerprint);
++        }
++        encryptOnly();
++    }
 +}
 +
-+void HTMLInputElementImpl::decrypt()
-+{
-+
++void HTMLInputElementImpl::encryptOnly()
++{    
++    QByteArray plainText = m_value.string().toAscii();
++    const CryptoBackend::Protocol * const  backend =
++        CryptoBackendFactory::instance()->protocol( OpenPGP );
++        
++    QByteArray cipherText; // Here we will receive the cipher text
++    std::vector<GpgME::Key> recipient(1, m_PGPEncryptionKey);
++    
++    std::auto_ptr<Kleo::EncryptJob> encryptJob( backend->encryptJob( /*armor=*/true, /*textmode=*/true ) );
++    Q_ASSERT( encryptJob.get() );
++    encryptJob->setOutputIsBase64Encoded(false);
++    encryptJob->exec(recipient, plainText, true, cipherText);
++    m_encryptedValue = cipherText.data();
++    m_encryptedValueSynced = true;
 +}
++
++#endif
 +
  void HTMLInputElementImpl::defaultEventHandler(EventImpl *evt)
  {
      if ( !m_disabled )
-Index: khtml/html/html_formimpl.h
+Index: html/html_formimpl.h
 ===================================================================
---- khtml/html/html_formimpl.h	(revision 1040546)
-+++ khtml/html/html_formimpl.h	(working copy)
+--- html/html_formimpl.h	(revision 1048061)
++++ html/html_formimpl.h	(working copy)
 @@ -25,6 +25,7 @@
  #ifndef HTML_FORMIMPL_H
  #define HTML_FORMIMPL_H
@@ -156,7 +429,18 @@ Index: khtml/html/html_formimpl.h
  #include "html/html_elementimpl.h"
  #include "html/html_imageimpl.h"
  #include "dom/html_element.h"
-@@ -268,6 +269,11 @@
+@@ -49,6 +50,10 @@
+     class Wallet;
+ }
+ 
++namespace GpgME {
++    class Key;
++}
++
+ namespace DOM {
+ 
+ class HTMLFormElement;
+@@ -268,6 +273,11 @@
          IMAGE,
          BUTTON
      };
@@ -168,7 +452,7 @@ Index: khtml/html/html_formimpl.h
  
      HTMLInputElementImpl(DocumentImpl *doc, HTMLFormElementImpl *f = 0);
      virtual ~HTMLInputElementImpl();
-@@ -292,6 +298,12 @@
+@@ -292,6 +302,11 @@
  
      DOMString value() const;
      void setValue(DOMString val);
@@ -176,38 +460,46 @@ Index: khtml/html/html_formimpl.h
 +    #ifdef KLEO_SUPPORT
 +    bool isEncrypted() const { return m_encryptionType != NONE; }
 +    encryptionTypeEnum encryptionType() const { return KDE_CAST_BF_ENUM(encryptionTypeEnum, m_encryptionType); }
-+    void setEncryption(encryptionTypeEnum encryptionType);
 +    #endif
  
      DOMString valueWithDefault() const;
  
-@@ -333,7 +345,12 @@
-     void setSelectionRange(long start, long end);
+@@ -334,6 +349,20 @@
  protected:
      void parseType(const DOMString& t);
-+    void encrypt();
-+    void decrypt();
  
-+    #ifdef KLEO_SUPPORT
++#ifdef KLEO_SUPPORT
++    void setPlainTextValue(DOMString _value);
++    DOMString plainTextvalue() const;
++    void encryptOnly();
++    //void encryptAndSign();
++    //void signOnly();
++    void handleEncryption();
++    
 +    DOMString m_encryptedValue;
-+    #endif
++    DOMString m_PGPEncryptionKeyFingerprint;
++    DOMString m_PGPSigningKeyFingerprint;
++    GpgME::Key m_PGPEncryptionKey;
++    GpgME::Key m_PGPSigningKey;
++#endif
      DOMString m_value;
      int       xPos;
      short     m_maxLen;
-@@ -351,6 +368,9 @@
+@@ -351,6 +380,10 @@
      bool m_autocomplete : 1;
      bool m_inited : 1;
      bool m_unsubmittedFormChange : 1;
 +    #ifdef KLEO_SUPPORT
++    bool m_encryptedValueSynced : 1;
 +    KDE_BF_ENUM(encryptionTypeEnum) m_encryptionType : 1;
 +    #endif
  };
  
  // -------------------------------------------------------------------------
-Index: khtml/CMakeLists.txt
+Index: CMakeLists.txt
 ===================================================================
---- khtml/CMakeLists.txt	(revision 1040546)
-+++ khtml/CMakeLists.txt	(working copy)
+--- CMakeLists.txt	(revision 1048061)
++++ CMakeLists.txt	(working copy)
 @@ -10,8 +10,6 @@
  add_definitions(-DWTF_PLATFORM_QT)
  ########svg#########
@@ -229,7 +521,7 @@ Index: khtml/CMakeLists.txt
 +if(KLEO_INCLUDES)
 +    set(KLEO_SUPPORT 1)
 +endif(KLEO_INCLUDES)
-+macro_log_feature(GPGMEPP_INCLUDES "gpgme++" "A library for encryption handling ${GPGMEPP_VANILLA_LIBRARIES}" "http://www.kdab.net" TRUE "" "Optional for khtml.")
++macro_log_feature(GPGMEPP_INCLUDES "gpgme++" "A library for encryption handling" "http://www.kdab.net" TRUE "" "Optional for khtml.")
 +macro_log_feature(KLEO_SUPPORT "libkleo" "A library for encryption handling" "http://www.kde.org" TRUE "" "Optional for khtml.")
 +
 +add_subdirectory( tests )
