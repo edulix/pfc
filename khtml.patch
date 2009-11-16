@@ -149,43 +149,2101 @@ Index: misc/htmlnames.h
 ===================================================================
 --- misc/htmlnames.h	(revision 1048061)
 +++ misc/htmlnames.h	(working copy)
-@@ -5,6 +5,7 @@
- #define HTMLNames_h
- 
- #include "misc/idstring.h"
-+#include "../config-khtml.h"
- 
- #define XML_NAMESPACE "http://www.w3.org/2000/xmlns/"
- #define SVG_NAMESPACE "http://www.w3.org/2000/svg"
-@@ -615,6 +616,12 @@
- #define ATTR_XLINK_ARCROLE ((DOM::xlinkNamespace << 16) | 554)
- #define ATTR_XLINK_ROLE ((DOM::xlinkNamespace << 16) | 555)
- #define ATTR_XLINK_SHOW ((DOM::xlinkNamespace << 16) | 556)
-+
-+#ifdef KLEO_SUPPORT
-+#define ATTR_ENCRYPTION ((DOM::xlinkNamespace << 16) | 557)
-+#define ATTR_ENCRYPTION_KEY ((DOM::xlinkNamespace << 16) | 558)
-+#define ATTR_SIGNING_KEY ((DOM::xlinkNamespace << 16) | 559)
-+#endif
+@@ -190,435 +190,438 @@
+ #define ATTR_DIRECTION ((DOM::emptyNamespace << 16) | 142)
+ #define ATTR_DISABLED ((DOM::emptyNamespace << 16) | 143)
+ #define ATTR_ENCTYPE ((DOM::emptyNamespace << 16) | 144)
+-#define ATTR_END ((DOM::emptyNamespace << 16) | 145)
+-#define ATTR_FACE ((DOM::emptyNamespace << 16) | 146)
+-#define ATTR_FRAMEBORDER ((DOM::emptyNamespace << 16) | 147)
+-#define ATTR_HEIGHT ((DOM::emptyNamespace << 16) | 148)
+-#define ATTR_HIDDEN ((DOM::emptyNamespace << 16) | 149)
+-#define ATTR_HREFLANG ((DOM::emptyNamespace << 16) | 150)
+-#define ATTR_HSPACE ((DOM::emptyNamespace << 16) | 151)
+-#define ATTR_HTTP_EQUIV ((DOM::emptyNamespace << 16) | 152)
+-#define ATTR_ISMAP ((DOM::emptyNamespace << 16) | 153)
+-#define ATTR_LANG ((DOM::emptyNamespace << 16) | 154)
+-#define ATTR_LANGUAGE ((DOM::emptyNamespace << 16) | 155)
+-#define ATTR_LEFT ((DOM::emptyNamespace << 16) | 156)
+-#define ATTR_LEFTMARGIN ((DOM::emptyNamespace << 16) | 157)
+-#define ATTR_LOOP ((DOM::emptyNamespace << 16) | 158)
+-#define ATTR_LOOPEND ((DOM::emptyNamespace << 16) | 159)
+-#define ATTR_LOOPSTART ((DOM::emptyNamespace << 16) | 160)
+-#define ATTR_MARGINHEIGHT ((DOM::emptyNamespace << 16) | 161)
+-#define ATTR_MARGINWIDTH ((DOM::emptyNamespace << 16) | 162)
+-#define ATTR_MAXLENGTH ((DOM::emptyNamespace << 16) | 163)
+-#define ATTR_MEDIA ((DOM::emptyNamespace << 16) | 164)
+-#define ATTR_METHOD ((DOM::emptyNamespace << 16) | 165)
+-#define ATTR_MULTIPLE ((DOM::emptyNamespace << 16) | 166)
+-#define ATTR_NOHREF ((DOM::emptyNamespace << 16) | 167)
+-#define ATTR_NORESIZE ((DOM::emptyNamespace << 16) | 168)
+-#define ATTR_NOSAVE ((DOM::emptyNamespace << 16) | 169)
+-#define ATTR_NOSHADE ((DOM::emptyNamespace << 16) | 170)
+-#define ATTR_NOWRAP ((DOM::emptyNamespace << 16) | 171)
+-#define ATTR_ONABORT ((DOM::emptyNamespace << 16) | 172)
+-#define ATTR_ONERROR ((DOM::emptyNamespace << 16) | 173)
+-#define ATTR_ONRESIZE ((DOM::emptyNamespace << 16) | 174)
+-#define ATTR_OVERSRC ((DOM::emptyNamespace << 16) | 175)
+-#define ATTR_PAGEX ((DOM::emptyNamespace << 16) | 176)
+-#define ATTR_PAGEY ((DOM::emptyNamespace << 16) | 177)
+-#define ATTR_PLAIN ((DOM::emptyNamespace << 16) | 178)
+-#define ATTR_PLAYCOUNT ((DOM::emptyNamespace << 16) | 179)
+-#define ATTR_PLUGINPAGE ((DOM::emptyNamespace << 16) | 180)
+-#define ATTR_PLUGINSPAGE ((DOM::emptyNamespace << 16) | 181)
+-#define ATTR_PLUGINURL ((DOM::emptyNamespace << 16) | 182)
+-#define ATTR_POSTER ((DOM::emptyNamespace << 16) | 183)
+-#define ATTR_READONLY ((DOM::emptyNamespace << 16) | 184)
+-#define ATTR_REL ((DOM::emptyNamespace << 16) | 185)
+-#define ATTR_REV ((DOM::emptyNamespace << 16) | 186)
+-#define ATTR_ROWS ((DOM::emptyNamespace << 16) | 187)
+-#define ATTR_ROWSPAN ((DOM::emptyNamespace << 16) | 188)
+-#define ATTR_RULES ((DOM::emptyNamespace << 16) | 189)
+-#define ATTR_SCOPE ((DOM::emptyNamespace << 16) | 190)
+-#define ATTR_SCROLLAMOUNT ((DOM::emptyNamespace << 16) | 191)
+-#define ATTR_SCROLLDELAY ((DOM::emptyNamespace << 16) | 192)
+-#define ATTR_SCROLLING ((DOM::emptyNamespace << 16) | 193)
+-#define ATTR_SELECTED ((DOM::emptyNamespace << 16) | 194)
+-#define ATTR_SHAPE ((DOM::emptyNamespace << 16) | 195)
+-#define ATTR_SIZE ((DOM::emptyNamespace << 16) | 196)
+-#define ATTR_START ((DOM::emptyNamespace << 16) | 197)
+-#define ATTR_TABINDEX ((DOM::emptyNamespace << 16) | 198)
+-#define ATTR_TARGET ((DOM::emptyNamespace << 16) | 199)
+-#define ATTR_TEXT ((DOM::emptyNamespace << 16) | 200)
+-#define ATTR_TOP ((DOM::emptyNamespace << 16) | 201)
+-#define ATTR_TOPMARGIN ((DOM::emptyNamespace << 16) | 202)
+-#define ATTR_TRUESPEED ((DOM::emptyNamespace << 16) | 203)
+-#define ATTR_XLINK_TYPE ((DOM::xlinkNamespace << 16) | 204)
+-#define ATTR_TYPE ((DOM::emptyNamespace << 16) | 204)
+-#define ATTR_UNKNOWN ((DOM::emptyNamespace << 16) | 205)
+-#define ATTR_VALIGN ((DOM::emptyNamespace << 16) | 206)
+-#define ATTR_VALUETYPE ((DOM::emptyNamespace << 16) | 207)
+-#define ATTR_VERSION ((DOM::emptyNamespace << 16) | 208)
+-#define ATTR_VISIBILITY ((DOM::emptyNamespace << 16) | 209)
+-#define ATTR_VLINK ((DOM::emptyNamespace << 16) | 210)
+-#define ATTR_VSPACE ((DOM::emptyNamespace << 16) | 211)
+-#define ATTR_WIDTH ((DOM::emptyNamespace << 16) | 212)
+-#define ATTR_WRAP ((DOM::emptyNamespace << 16) | 213)
+-#define ATTR_Z_INDEX ((DOM::emptyNamespace << 16) | 214)
+-#define ATTR_ACTION ((DOM::emptyNamespace << 16) | 215)
+-#define ATTR_ALT ((DOM::emptyNamespace << 16) | 216)
+-#define ATTR_ARCHIVE ((DOM::emptyNamespace << 16) | 217)
+-#define ATTR_BACKGROUND ((DOM::emptyNamespace << 16) | 218)
+-#define ATTR_CLASS ((DOM::emptyNamespace << 16) | 219)
+-#define ATTR_CLASSID ((DOM::emptyNamespace << 16) | 220)
+-#define ATTR_CODEBASE ((DOM::emptyNamespace << 16) | 221)
+-#define ATTR_CONTENT ((DOM::emptyNamespace << 16) | 222)
+-#define ATTR_DATA ((DOM::emptyNamespace << 16) | 223)
+-#define ATTR_DATETIME ((DOM::emptyNamespace << 16) | 224)
+-#define ATTR_FOR ((DOM::emptyNamespace << 16) | 225)
+-#define ATTR_HEADERS ((DOM::emptyNamespace << 16) | 226)
+-#define ATTR_XLINK_HREF ((DOM::xlinkNamespace << 16) | 227)
+-#define ATTR_HREF ((DOM::emptyNamespace << 16) | 227)
+-#define ATTR_ID ((DOM::emptyNamespace << 16) | 228)
+-#define ATTR_LONGDESC ((DOM::emptyNamespace << 16) | 229)
+-#define ATTR_NAME ((DOM::emptyNamespace << 16) | 230)
+-#define ATTR_ONBLUR ((DOM::emptyNamespace << 16) | 231)
+-#define ATTR_ONCHANGE ((DOM::emptyNamespace << 16) | 232)
+-#define ATTR_ONCLICK ((DOM::emptyNamespace << 16) | 233)
+-#define ATTR_ONDBLCLICK ((DOM::emptyNamespace << 16) | 234)
+-#define ATTR_ONFOCUS ((DOM::emptyNamespace << 16) | 235)
+-#define ATTR_ONKEYDOWN ((DOM::emptyNamespace << 16) | 236)
+-#define ATTR_ONKEYPRESS ((DOM::emptyNamespace << 16) | 237)
+-#define ATTR_ONKEYUP ((DOM::emptyNamespace << 16) | 238)
+-#define ATTR_ONLOAD ((DOM::emptyNamespace << 16) | 239)
+-#define ATTR_ONMOUSEDOWN ((DOM::emptyNamespace << 16) | 240)
+-#define ATTR_ONMOUSEMOVE ((DOM::emptyNamespace << 16) | 241)
+-#define ATTR_ONMOUSEOUT ((DOM::emptyNamespace << 16) | 242)
+-#define ATTR_ONMOUSEOVER ((DOM::emptyNamespace << 16) | 243)
+-#define ATTR_ONMOUSEUP ((DOM::emptyNamespace << 16) | 244)
+-#define ATTR_ONRESET ((DOM::emptyNamespace << 16) | 245)
+-#define ATTR_ONSELECT ((DOM::emptyNamespace << 16) | 246)
+-#define ATTR_ONSCROLL ((DOM::emptyNamespace << 16) | 247)
+-#define ATTR_ONSUBMIT ((DOM::emptyNamespace << 16) | 248)
+-#define ATTR_ONUNLOAD ((DOM::emptyNamespace << 16) | 249)
+-#define ATTR_PROFILE ((DOM::emptyNamespace << 16) | 250)
+-#define ATTR_PROMPT ((DOM::emptyNamespace << 16) | 251)
+-#define ATTR_SCHEME ((DOM::emptyNamespace << 16) | 252)
+-#define ATTR_SRC ((DOM::emptyNamespace << 16) | 253)
+-#define ATTR_STANDBY ((DOM::emptyNamespace << 16) | 254)
+-#define ATTR_SUMMARY ((DOM::emptyNamespace << 16) | 255)
+-#define ATTR_USEMAP ((DOM::emptyNamespace << 16) | 256)
+-#define ATTR_VALUE ((DOM::emptyNamespace << 16) | 257)
+-#define ID_ALTGLYPH 258
+-#define ID_ALTGLYPHDEF 259
+-#define ID_ALTGLYPHITEM 260
+-#define ID_ANIMATE 261
+-#define ATTR_ANIMATE ((DOM::emptyNamespace << 16) | 261)
+-#define ID_ANIMATECOLOR 262
+-#define ID_ANIMATEMOTION 263
+-#define ID_ANIMATETRANSFORM 264
+-#define ID_SET 265
+-#define ID_CIRCLE 266
+-#define ID_CLIPPATH 267
+-#define ID_COLOR_PROFILE 268
+-#define ID_CURSOR 269
+-#define ATTR_CURSOR ((DOM::emptyNamespace << 16) | 269)
+-#define ID_DEFINITION_SRC 270
+-#define ID_DEFS 271
+-#define ID_DESC 272
+-#define ID_ELLIPSE 273
+-#define ID_FEBLEND 274
+-#define ID_FECOLORMATRIX 275
+-#define ATTR_FECOLORMATRIX ((DOM::emptyNamespace << 16) | 275)
+-#define ID_FECOMPONENTTRANSFER 276
+-#define ID_FECOMPOSITE 277
+-#define ATTR_FECOMPOSITE ((DOM::emptyNamespace << 16) | 277)
+-#define ID_FECONVOLVEMATRIX 278
+-#define ID_FEDIFFUSELIGHTING 279
+-#define ID_FEDISPLACEMENTMAP 280
+-#define ID_FEDISTANTLIGHT 281
+-#define ID_FEFLOOD 282
+-#define ID_FEFUNCA 283
+-#define ID_FEFUNCB 284
+-#define ID_FEFUNCG 285
+-#define ID_FEFUNCR 286
+-#define ID_FEGAUSSIANBLUR 287
+-#define ATTR_FEGAUSSIANBLUR ((DOM::emptyNamespace << 16) | 287)
+-#define ID_FEIMAGE 288
+-#define ID_FEMERGE 289
+-#define ID_FEMERGENODE 290
+-#define ID_FEMORPHOLOGY 291
+-#define ATTR_FEMORPHOLOGY ((DOM::emptyNamespace << 16) | 291)
+-#define ID_FEOFFSET 292
+-#define ID_FEPOINTLIGHT 293
+-#define ID_FESPECULARLIGHTING 294
+-#define ID_FESPOTLIGHT 295
+-#define ID_FETILE 296
+-#define ATTR_FETILE ((DOM::emptyNamespace << 16) | 296)
+-#define ID_FETURBULENCE 297
+-#define ID_FILTER 298
+-#define ATTR_FILTER ((DOM::emptyNamespace << 16) | 298)
+-#define ID_FONT_FACE 299
+-#define ID_FONT_FACE_FORMAT 300
+-#define ID_FONT_FACE_NAME 301
+-#define ID_FONT_FACE_SRC 302
+-#define ID_FONT_FACE_URI 303
+-#define ID_FOREIGNOBJECT 304
+-#define ID_G 305
+-#define ID_GLYPH 306
+-#define ID_GLYPHREF 307
+-#define ATTR_GLYPHREF ((DOM::emptyNamespace << 16) | 307)
+-#define ID_HKERN 308
+-#define ID_LINE 309
+-#define ID_LINEARGRADIENT 310
+-#define ID_MARKER 311
+-#define ID_MASK 312
+-#define ATTR_MASK ((DOM::emptyNamespace << 16) | 312)
+-#define ID_METADATA 313
+-#define ID_MISSING_GLYPH 314
+-#define ID_MPATH 315
+-#define ID_PATH 316
+-#define ATTR_PATH ((DOM::emptyNamespace << 16) | 316)
+-#define ID_PATTERN 317
+-#define ID_POLYGON 318
+-#define ID_POLYLINE 319
+-#define ID_RADIALGRADIENT 320
+-#define ID_RECT 321
+-#define ID_STOP 322
+-#define ID_SVG 323
+-#define ID_SWITCH 324
+-#define ID_SYMBOL 325
+-#define ID_TEXTPATH 326
+-#define ID_TREF 327
+-#define ID_TSPAN 328
+-#define ID_USE 329
+-#define ID_VIEW 330
+-#define ID_VKERN 331
+-#define ATTR_ACCENT_HEIGHT ((DOM::emptyNamespace << 16) | 332)
+-#define ATTR_ACCUMULATE ((DOM::emptyNamespace << 16) | 333)
+-#define ATTR_ADDITIVE ((DOM::emptyNamespace << 16) | 334)
+-#define ATTR_ALIGNMENT_BASELINE ((DOM::emptyNamespace << 16) | 335)
+-#define ATTR_ALPHABETIC ((DOM::emptyNamespace << 16) | 336)
+-#define ATTR_AMPLITUDE ((DOM::emptyNamespace << 16) | 337)
+-#define ATTR_ARABIC_FORM ((DOM::emptyNamespace << 16) | 338)
+-#define ATTR_ASCENT ((DOM::emptyNamespace << 16) | 339)
+-#define ATTR_ATTRIBUTENAME ((DOM::emptyNamespace << 16) | 340)
+-#define ATTR_ATTRIBUTETYPE ((DOM::emptyNamespace << 16) | 341)
+-#define ATTR_AZIMUTH ((DOM::emptyNamespace << 16) | 342)
+-#define ATTR_BASEFREQUENCY ((DOM::emptyNamespace << 16) | 343)
+-#define ATTR_BASELINE_SHIFT ((DOM::emptyNamespace << 16) | 344)
+-#define ATTR_BASEPROFILE ((DOM::emptyNamespace << 16) | 345)
+-#define ATTR_BBOX ((DOM::emptyNamespace << 16) | 346)
+-#define ATTR_BEGIN ((DOM::emptyNamespace << 16) | 347)
+-#define ATTR_BIAS ((DOM::emptyNamespace << 16) | 348)
+-#define ATTR_BY ((DOM::emptyNamespace << 16) | 349)
+-#define ATTR_CALCMODE ((DOM::emptyNamespace << 16) | 350)
+-#define ATTR_CAP_HEIGHT ((DOM::emptyNamespace << 16) | 351)
+-#define ATTR_CLIP ((DOM::emptyNamespace << 16) | 352)
+-#define ATTR_CLIP_PATH ((DOM::emptyNamespace << 16) | 353)
+-#define ATTR_CLIP_RULE ((DOM::emptyNamespace << 16) | 354)
+-#define ATTR_CLIPPATHUNITS ((DOM::emptyNamespace << 16) | 355)
+-#define ATTR_COLOR_INTERPOLATION ((DOM::emptyNamespace << 16) | 356)
+-#define ATTR_COLOR_INTERPOLATION_FILTERS ((DOM::emptyNamespace << 16) | 357)
+-#define ATTR_COLOR_PROFILE ((DOM::emptyNamespace << 16) | 358)
+-#define ATTR_COLOR_RENDERING ((DOM::emptyNamespace << 16) | 359)
+-#define ATTR_CONTENTSCRIPTTYPE ((DOM::emptyNamespace << 16) | 360)
+-#define ATTR_CONTENTSTYLETYPE ((DOM::emptyNamespace << 16) | 361)
+-#define ATTR_CX ((DOM::emptyNamespace << 16) | 362)
+-#define ATTR_CY ((DOM::emptyNamespace << 16) | 363)
+-#define ATTR_D ((DOM::emptyNamespace << 16) | 364)
+-#define ATTR_DESCENT ((DOM::emptyNamespace << 16) | 365)
+-#define ATTR_DIFFUSECONSTANT ((DOM::emptyNamespace << 16) | 366)
+-#define ATTR_DISPLAY ((DOM::emptyNamespace << 16) | 367)
+-#define ATTR_DIVISOR ((DOM::emptyNamespace << 16) | 368)
+-#define ATTR_DOMINANT_BASELINE ((DOM::emptyNamespace << 16) | 369)
+-#define ATTR_DUR ((DOM::emptyNamespace << 16) | 370)
+-#define ATTR_DX ((DOM::emptyNamespace << 16) | 371)
+-#define ATTR_DY ((DOM::emptyNamespace << 16) | 372)
+-#define ATTR_EDGEMODE ((DOM::emptyNamespace << 16) | 373)
+-#define ATTR_ELEVATION ((DOM::emptyNamespace << 16) | 374)
+-#define ATTR_ENABLE_BACKGROUND ((DOM::emptyNamespace << 16) | 375)
+-#define ATTR_EXPONENT ((DOM::emptyNamespace << 16) | 376)
+-#define ATTR_EXTERNALRESOURCESREQUIRED ((DOM::emptyNamespace << 16) | 377)
+-#define ATTR_FILL ((DOM::emptyNamespace << 16) | 378)
+-#define ATTR_FILL_OPACITY ((DOM::emptyNamespace << 16) | 379)
+-#define ATTR_FILL_RULE ((DOM::emptyNamespace << 16) | 380)
+-#define ATTR_FILTERRES ((DOM::emptyNamespace << 16) | 381)
+-#define ATTR_FILTERUNITS ((DOM::emptyNamespace << 16) | 382)
+-#define ATTR_FLOOD_COLOR ((DOM::emptyNamespace << 16) | 383)
+-#define ATTR_FLOOD_OPACITY ((DOM::emptyNamespace << 16) | 384)
+-#define ATTR_FONT_FAMILY ((DOM::emptyNamespace << 16) | 385)
+-#define ATTR_FONT_SIZE ((DOM::emptyNamespace << 16) | 386)
+-#define ATTR_FONT_SIZE_ADJUST ((DOM::emptyNamespace << 16) | 387)
+-#define ATTR_FONT_STRETCH ((DOM::emptyNamespace << 16) | 388)
+-#define ATTR_FONT_STYLE ((DOM::emptyNamespace << 16) | 389)
+-#define ATTR_FONT_VARIANT ((DOM::emptyNamespace << 16) | 390)
+-#define ATTR_FONT_WEIGHT ((DOM::emptyNamespace << 16) | 391)
+-#define ATTR_FORMAT ((DOM::emptyNamespace << 16) | 392)
+-#define ATTR_FROM ((DOM::emptyNamespace << 16) | 393)
+-#define ATTR_FX ((DOM::emptyNamespace << 16) | 394)
+-#define ATTR_FY ((DOM::emptyNamespace << 16) | 395)
+-#define ATTR_G1 ((DOM::emptyNamespace << 16) | 396)
+-#define ATTR_G2 ((DOM::emptyNamespace << 16) | 397)
+-#define ATTR_GLYPH_NAME ((DOM::emptyNamespace << 16) | 398)
+-#define ATTR_GLYPH_ORIENTATION_HORIZONTAL ((DOM::emptyNamespace << 16) | 399)
+-#define ATTR_GLYPH_ORIENTATION_VERTICAL ((DOM::emptyNamespace << 16) | 400)
+-#define ATTR_GRADIENTTRANSFORM ((DOM::emptyNamespace << 16) | 401)
+-#define ATTR_GRADIENTUNITS ((DOM::emptyNamespace << 16) | 402)
+-#define ATTR_HANGING ((DOM::emptyNamespace << 16) | 403)
+-#define ATTR_HORIZ_ADV_X ((DOM::emptyNamespace << 16) | 404)
+-#define ATTR_HORIZ_ORIGIN_X ((DOM::emptyNamespace << 16) | 405)
+-#define ATTR_HORIZ_ORIGIN_Y ((DOM::emptyNamespace << 16) | 406)
+-#define ATTR_IDEOGRAPHIC ((DOM::emptyNamespace << 16) | 407)
+-#define ATTR_IMAGE_RENDERING ((DOM::emptyNamespace << 16) | 408)
+-#define ATTR_IN ((DOM::emptyNamespace << 16) | 409)
+-#define ATTR_IN2 ((DOM::emptyNamespace << 16) | 410)
+-#define ATTR_INTERCEPT ((DOM::emptyNamespace << 16) | 411)
+-#define ATTR_K ((DOM::emptyNamespace << 16) | 412)
+-#define ATTR_K1 ((DOM::emptyNamespace << 16) | 413)
+-#define ATTR_K2 ((DOM::emptyNamespace << 16) | 414)
+-#define ATTR_K3 ((DOM::emptyNamespace << 16) | 415)
+-#define ATTR_K4 ((DOM::emptyNamespace << 16) | 416)
+-#define ATTR_KERNELMATRIX ((DOM::emptyNamespace << 16) | 417)
+-#define ATTR_KERNELUNITLENGTH ((DOM::emptyNamespace << 16) | 418)
+-#define ATTR_KERNING ((DOM::emptyNamespace << 16) | 419)
+-#define ATTR_KEYPOINTS ((DOM::emptyNamespace << 16) | 420)
+-#define ATTR_KEYSPLINES ((DOM::emptyNamespace << 16) | 421)
+-#define ATTR_KEYTIMES ((DOM::emptyNamespace << 16) | 422)
+-#define ATTR_LENGTHADJUST ((DOM::emptyNamespace << 16) | 423)
+-#define ATTR_LETTER_SPACING ((DOM::emptyNamespace << 16) | 424)
+-#define ATTR_LIGHTING_COLOR ((DOM::emptyNamespace << 16) | 425)
+-#define ATTR_LIMITINGCONEANGLE ((DOM::emptyNamespace << 16) | 426)
+-#define ATTR_LOCAL ((DOM::emptyNamespace << 16) | 427)
+-#define ATTR_MARKER_END ((DOM::emptyNamespace << 16) | 428)
+-#define ATTR_MARKER_MID ((DOM::emptyNamespace << 16) | 429)
+-#define ATTR_MARKER_START ((DOM::emptyNamespace << 16) | 430)
+-#define ATTR_MARKERHEIGHT ((DOM::emptyNamespace << 16) | 431)
+-#define ATTR_MARKERUNITS ((DOM::emptyNamespace << 16) | 432)
+-#define ATTR_MARKERWIDTH ((DOM::emptyNamespace << 16) | 433)
+-#define ATTR_MASKCONTENTUNITS ((DOM::emptyNamespace << 16) | 434)
+-#define ATTR_MASKUNITS ((DOM::emptyNamespace << 16) | 435)
+-#define ATTR_MATHEMATICAL ((DOM::emptyNamespace << 16) | 436)
+-#define ATTR_MAX ((DOM::emptyNamespace << 16) | 437)
+-#define ATTR_MIN ((DOM::emptyNamespace << 16) | 438)
+-#define ATTR_MODE ((DOM::emptyNamespace << 16) | 439)
+-#define ATTR_NUMOCTAVES ((DOM::emptyNamespace << 16) | 440)
+-#define ATTR_OFFSET ((DOM::emptyNamespace << 16) | 441)
+-#define ATTR_ONACTIVATE ((DOM::emptyNamespace << 16) | 442)
+-#define ATTR_ONBEGIN ((DOM::emptyNamespace << 16) | 443)
+-#define ATTR_ONEND ((DOM::emptyNamespace << 16) | 444)
+-#define ATTR_ONFOCUSIN ((DOM::emptyNamespace << 16) | 445)
+-#define ATTR_ONFOCUSOUT ((DOM::emptyNamespace << 16) | 446)
+-#define ATTR_ONREPEAT ((DOM::emptyNamespace << 16) | 447)
+-#define ATTR_ONZOOM ((DOM::emptyNamespace << 16) | 448)
+-#define ATTR_OPACITY ((DOM::emptyNamespace << 16) | 449)
+-#define ATTR_OPERATOR ((DOM::emptyNamespace << 16) | 450)
+-#define ATTR_ORDER ((DOM::emptyNamespace << 16) | 451)
+-#define ATTR_ORIENT ((DOM::emptyNamespace << 16) | 452)
+-#define ATTR_ORIENTATION ((DOM::emptyNamespace << 16) | 453)
+-#define ATTR_ORIGIN ((DOM::emptyNamespace << 16) | 454)
+-#define ATTR_OVERFLOW ((DOM::emptyNamespace << 16) | 455)
+-#define ATTR_OVERLINE_POSITION ((DOM::emptyNamespace << 16) | 456)
+-#define ATTR_OVERLINE_THICKNESS ((DOM::emptyNamespace << 16) | 457)
+-#define ATTR_PANOSE_1 ((DOM::emptyNamespace << 16) | 458)
+-#define ATTR_PATHLENGTH ((DOM::emptyNamespace << 16) | 459)
+-#define ATTR_PATTERNCONTENTUNITS ((DOM::emptyNamespace << 16) | 460)
+-#define ATTR_PATTERNTRANSFORM ((DOM::emptyNamespace << 16) | 461)
+-#define ATTR_PATTERNUNITS ((DOM::emptyNamespace << 16) | 462)
+-#define ATTR_POINTER_EVENTS ((DOM::emptyNamespace << 16) | 463)
+-#define ATTR_POINTS ((DOM::emptyNamespace << 16) | 464)
+-#define ATTR_POINTSATX ((DOM::emptyNamespace << 16) | 465)
+-#define ATTR_POINTSATY ((DOM::emptyNamespace << 16) | 466)
+-#define ATTR_POINTSATZ ((DOM::emptyNamespace << 16) | 467)
+-#define ATTR_PRESERVEALPHA ((DOM::emptyNamespace << 16) | 468)
+-#define ATTR_PRESERVEASPECTRATIO ((DOM::emptyNamespace << 16) | 469)
+-#define ATTR_PRIMITIVEUNITS ((DOM::emptyNamespace << 16) | 470)
+-#define ATTR_R ((DOM::emptyNamespace << 16) | 471)
+-#define ATTR_RADIUS ((DOM::emptyNamespace << 16) | 472)
+-#define ATTR_REFX ((DOM::emptyNamespace << 16) | 473)
+-#define ATTR_REFY ((DOM::emptyNamespace << 16) | 474)
+-#define ATTR_RENDERING_INTENT ((DOM::emptyNamespace << 16) | 475)
+-#define ATTR_REPEATCOUNT ((DOM::emptyNamespace << 16) | 476)
+-#define ATTR_REPEATDUR ((DOM::emptyNamespace << 16) | 477)
+-#define ATTR_REQUIREDEXTENSIONS ((DOM::emptyNamespace << 16) | 478)
+-#define ATTR_REQUIREDFEATURES ((DOM::emptyNamespace << 16) | 479)
+-#define ATTR_RESTART ((DOM::emptyNamespace << 16) | 480)
+-#define ATTR_RESULT ((DOM::emptyNamespace << 16) | 481)
+-#define ATTR_ROTATE ((DOM::emptyNamespace << 16) | 482)
+-#define ATTR_RX ((DOM::emptyNamespace << 16) | 483)
+-#define ATTR_RY ((DOM::emptyNamespace << 16) | 484)
+-#define ATTR_SCALE ((DOM::emptyNamespace << 16) | 485)
+-#define ATTR_SEED ((DOM::emptyNamespace << 16) | 486)
+-#define ATTR_SHAPE_RENDERING ((DOM::emptyNamespace << 16) | 487)
+-#define ATTR_SLOPE ((DOM::emptyNamespace << 16) | 488)
+-#define ATTR_SPACING ((DOM::emptyNamespace << 16) | 489)
+-#define ATTR_SPECULARCONSTANT ((DOM::emptyNamespace << 16) | 490)
+-#define ATTR_SPECULAREXPONENT ((DOM::emptyNamespace << 16) | 491)
+-#define ATTR_SPREADMETHOD ((DOM::emptyNamespace << 16) | 492)
+-#define ATTR_STARTOFFSET ((DOM::emptyNamespace << 16) | 493)
+-#define ATTR_STDDEVIATION ((DOM::emptyNamespace << 16) | 494)
+-#define ATTR_STEMH ((DOM::emptyNamespace << 16) | 495)
+-#define ATTR_STEMV ((DOM::emptyNamespace << 16) | 496)
+-#define ATTR_STITCHTILES ((DOM::emptyNamespace << 16) | 497)
+-#define ATTR_STOP_COLOR ((DOM::emptyNamespace << 16) | 498)
+-#define ATTR_STOP_OPACITY ((DOM::emptyNamespace << 16) | 499)
+-#define ATTR_STRIKETHROUGH_POSITION ((DOM::emptyNamespace << 16) | 500)
+-#define ATTR_STRIKETHROUGH_THICKNESS ((DOM::emptyNamespace << 16) | 501)
+-#define ATTR_STROKE ((DOM::emptyNamespace << 16) | 502)
+-#define ATTR_STROKE_DASHARRAY ((DOM::emptyNamespace << 16) | 503)
+-#define ATTR_STROKE_DASHOFFSET ((DOM::emptyNamespace << 16) | 504)
+-#define ATTR_STROKE_LINECAP ((DOM::emptyNamespace << 16) | 505)
+-#define ATTR_STROKE_LINEJOIN ((DOM::emptyNamespace << 16) | 506)
+-#define ATTR_STROKE_MITERLIMIT ((DOM::emptyNamespace << 16) | 507)
+-#define ATTR_STROKE_OPACITY ((DOM::emptyNamespace << 16) | 508)
+-#define ATTR_STROKE_WIDTH ((DOM::emptyNamespace << 16) | 509)
+-#define ATTR_SURFACESCALE ((DOM::emptyNamespace << 16) | 510)
+-#define ATTR_SYSTEMLANGUAGE ((DOM::emptyNamespace << 16) | 511)
+-#define ATTR_TABLEVALUES ((DOM::emptyNamespace << 16) | 512)
+-#define ATTR_TARGETX ((DOM::emptyNamespace << 16) | 513)
+-#define ATTR_TARGETY ((DOM::emptyNamespace << 16) | 514)
+-#define ATTR_TEXT_ANCHOR ((DOM::emptyNamespace << 16) | 515)
+-#define ATTR_TEXT_DECORATION ((DOM::emptyNamespace << 16) | 516)
+-#define ATTR_TEXT_RENDERING ((DOM::emptyNamespace << 16) | 517)
+-#define ATTR_TEXTLENGTH ((DOM::emptyNamespace << 16) | 518)
+-#define ATTR_TO ((DOM::emptyNamespace << 16) | 519)
+-#define ATTR_TRANSFORM ((DOM::emptyNamespace << 16) | 520)
+-#define ATTR_U1 ((DOM::emptyNamespace << 16) | 521)
+-#define ATTR_U2 ((DOM::emptyNamespace << 16) | 522)
+-#define ATTR_UNDERLINE_POSITION ((DOM::emptyNamespace << 16) | 523)
+-#define ATTR_UNDERLINE_THICKNESS ((DOM::emptyNamespace << 16) | 524)
+-#define ATTR_UNICODE ((DOM::emptyNamespace << 16) | 525)
+-#define ATTR_UNICODE_BIDI ((DOM::emptyNamespace << 16) | 526)
+-#define ATTR_UNICODE_RANGE ((DOM::emptyNamespace << 16) | 527)
+-#define ATTR_UNITS_PER_EM ((DOM::emptyNamespace << 16) | 528)
+-#define ATTR_V_ALPHABETIC ((DOM::emptyNamespace << 16) | 529)
+-#define ATTR_V_HANGING ((DOM::emptyNamespace << 16) | 530)
+-#define ATTR_V_IDEOGRAPHIC ((DOM::emptyNamespace << 16) | 531)
+-#define ATTR_V_MATHEMATICAL ((DOM::emptyNamespace << 16) | 532)
+-#define ATTR_VALUES ((DOM::emptyNamespace << 16) | 533)
+-#define ATTR_VERT_ADV_Y ((DOM::emptyNamespace << 16) | 534)
+-#define ATTR_VERT_ORIGIN_X ((DOM::emptyNamespace << 16) | 535)
+-#define ATTR_VERT_ORIGIN_Y ((DOM::emptyNamespace << 16) | 536)
+-#define ATTR_VIEWBOX ((DOM::emptyNamespace << 16) | 537)
+-#define ATTR_VIEWTARGET ((DOM::emptyNamespace << 16) | 538)
+-#define ATTR_WIDTHS ((DOM::emptyNamespace << 16) | 539)
+-#define ATTR_WORD_SPACING ((DOM::emptyNamespace << 16) | 540)
+-#define ATTR_WRITING_MODE ((DOM::emptyNamespace << 16) | 541)
+-#define ATTR_X ((DOM::emptyNamespace << 16) | 542)
+-#define ATTR_X_HEIGHT ((DOM::emptyNamespace << 16) | 543)
+-#define ATTR_X1 ((DOM::emptyNamespace << 16) | 544)
+-#define ATTR_X2 ((DOM::emptyNamespace << 16) | 545)
+-#define ATTR_XCHANNELSELECTOR ((DOM::emptyNamespace << 16) | 546)
+-#define ATTR_Y ((DOM::emptyNamespace << 16) | 547)
+-#define ATTR_Y1 ((DOM::emptyNamespace << 16) | 548)
+-#define ATTR_Y2 ((DOM::emptyNamespace << 16) | 549)
+-#define ATTR_YCHANNELSELECTOR ((DOM::emptyNamespace << 16) | 550)
+-#define ATTR_Z ((DOM::emptyNamespace << 16) | 551)
+-#define ATTR_ZOOMANDPAN ((DOM::emptyNamespace << 16) | 552)
+-#define ATTR_XLINK_ACTUATE ((DOM::xlinkNamespace << 16) | 553)
+-#define ATTR_XLINK_ARCROLE ((DOM::xlinkNamespace << 16) | 554)
+-#define ATTR_XLINK_ROLE ((DOM::xlinkNamespace << 16) | 555)
+-#define ATTR_XLINK_SHOW ((DOM::xlinkNamespace << 16) | 556)
++#define ATTR_ENCRYPTION ((DOM::emptyNamespace << 16) | 145)
++#define ATTR_ENCRYPTION_KEY ((DOM::emptyNamespace << 16) | 146)
++#define ATTR_END ((DOM::emptyNamespace << 16) | 147)
++#define ATTR_FACE ((DOM::emptyNamespace << 16) | 148)
++#define ATTR_FRAMEBORDER ((DOM::emptyNamespace << 16) | 149)
++#define ATTR_HEIGHT ((DOM::emptyNamespace << 16) | 150)
++#define ATTR_HIDDEN ((DOM::emptyNamespace << 16) | 151)
++#define ATTR_HREFLANG ((DOM::emptyNamespace << 16) | 152)
++#define ATTR_HSPACE ((DOM::emptyNamespace << 16) | 153)
++#define ATTR_HTTP_EQUIV ((DOM::emptyNamespace << 16) | 154)
++#define ATTR_ISMAP ((DOM::emptyNamespace << 16) | 155)
++#define ATTR_LANG ((DOM::emptyNamespace << 16) | 156)
++#define ATTR_LANGUAGE ((DOM::emptyNamespace << 16) | 157)
++#define ATTR_LEFT ((DOM::emptyNamespace << 16) | 158)
++#define ATTR_LEFTMARGIN ((DOM::emptyNamespace << 16) | 159)
++#define ATTR_LOOP ((DOM::emptyNamespace << 16) | 160)
++#define ATTR_LOOPEND ((DOM::emptyNamespace << 16) | 161)
++#define ATTR_LOOPSTART ((DOM::emptyNamespace << 16) | 162)
++#define ATTR_MARGINHEIGHT ((DOM::emptyNamespace << 16) | 163)
++#define ATTR_MARGINWIDTH ((DOM::emptyNamespace << 16) | 164)
++#define ATTR_MAXLENGTH ((DOM::emptyNamespace << 16) | 165)
++#define ATTR_MEDIA ((DOM::emptyNamespace << 16) | 166)
++#define ATTR_METHOD ((DOM::emptyNamespace << 16) | 167)
++#define ATTR_MULTIPLE ((DOM::emptyNamespace << 16) | 168)
++#define ATTR_NOHREF ((DOM::emptyNamespace << 16) | 169)
++#define ATTR_NORESIZE ((DOM::emptyNamespace << 16) | 170)
++#define ATTR_NOSAVE ((DOM::emptyNamespace << 16) | 171)
++#define ATTR_NOSHADE ((DOM::emptyNamespace << 16) | 172)
++#define ATTR_NOWRAP ((DOM::emptyNamespace << 16) | 173)
++#define ATTR_ONABORT ((DOM::emptyNamespace << 16) | 174)
++#define ATTR_ONERROR ((DOM::emptyNamespace << 16) | 175)
++#define ATTR_ONRESIZE ((DOM::emptyNamespace << 16) | 176)
++#define ATTR_OVERSRC ((DOM::emptyNamespace << 16) | 177)
++#define ATTR_PAGEX ((DOM::emptyNamespace << 16) | 178)
++#define ATTR_PAGEY ((DOM::emptyNamespace << 16) | 179)
++#define ATTR_PLAIN ((DOM::emptyNamespace << 16) | 180)
++#define ATTR_PLAYCOUNT ((DOM::emptyNamespace << 16) | 181)
++#define ATTR_PLUGINPAGE ((DOM::emptyNamespace << 16) | 182)
++#define ATTR_PLUGINSPAGE ((DOM::emptyNamespace << 16) | 183)
++#define ATTR_PLUGINURL ((DOM::emptyNamespace << 16) | 184)
++#define ATTR_POSTER ((DOM::emptyNamespace << 16) | 185)
++#define ATTR_READONLY ((DOM::emptyNamespace << 16) | 186)
++#define ATTR_REL ((DOM::emptyNamespace << 16) | 187)
++#define ATTR_REV ((DOM::emptyNamespace << 16) | 188)
++#define ATTR_ROWS ((DOM::emptyNamespace << 16) | 189)
++#define ATTR_ROWSPAN ((DOM::emptyNamespace << 16) | 190)
++#define ATTR_RULES ((DOM::emptyNamespace << 16) | 191)
++#define ATTR_SCOPE ((DOM::emptyNamespace << 16) | 192)
++#define ATTR_SCROLLAMOUNT ((DOM::emptyNamespace << 16) | 193)
++#define ATTR_SCROLLDELAY ((DOM::emptyNamespace << 16) | 194)
++#define ATTR_SCROLLING ((DOM::emptyNamespace << 16) | 195)
++#define ATTR_SELECTED ((DOM::emptyNamespace << 16) | 196)
++#define ATTR_SHAPE ((DOM::emptyNamespace << 16) | 197)
++#define ATTR_SIGNING_KEY ((DOM::emptyNamespace << 16) | 198)
++#define ATTR_SIZE ((DOM::emptyNamespace << 16) | 199)
++#define ATTR_START ((DOM::emptyNamespace << 16) | 200)
++#define ATTR_TABINDEX ((DOM::emptyNamespace << 16) | 201)
++#define ATTR_TARGET ((DOM::emptyNamespace << 16) | 202)
++#define ATTR_TEXT ((DOM::emptyNamespace << 16) | 203)
++#define ATTR_TOP ((DOM::emptyNamespace << 16) | 204)
++#define ATTR_TOPMARGIN ((DOM::emptyNamespace << 16) | 205)
++#define ATTR_TRUESPEED ((DOM::emptyNamespace << 16) | 206)
++#define ATTR_XLINK_TYPE ((DOM::xlinkNamespace << 16) | 207)
++#define ATTR_TYPE ((DOM::emptyNamespace << 16) | 207)
++#define ATTR_UNKNOWN ((DOM::emptyNamespace << 16) | 208)
++#define ATTR_VALIGN ((DOM::emptyNamespace << 16) | 209)
++#define ATTR_VALUETYPE ((DOM::emptyNamespace << 16) | 210)
++#define ATTR_VERSION ((DOM::emptyNamespace << 16) | 211)
++#define ATTR_VISIBILITY ((DOM::emptyNamespace << 16) | 212)
++#define ATTR_VLINK ((DOM::emptyNamespace << 16) | 213)
++#define ATTR_VSPACE ((DOM::emptyNamespace << 16) | 214)
++#define ATTR_WIDTH ((DOM::emptyNamespace << 16) | 215)
++#define ATTR_WRAP ((DOM::emptyNamespace << 16) | 216)
++#define ATTR_Z_INDEX ((DOM::emptyNamespace << 16) | 217)
++#define ATTR_ACTION ((DOM::emptyNamespace << 16) | 218)
++#define ATTR_ALT ((DOM::emptyNamespace << 16) | 219)
++#define ATTR_ARCHIVE ((DOM::emptyNamespace << 16) | 220)
++#define ATTR_BACKGROUND ((DOM::emptyNamespace << 16) | 221)
++#define ATTR_CLASS ((DOM::emptyNamespace << 16) | 222)
++#define ATTR_CLASSID ((DOM::emptyNamespace << 16) | 223)
++#define ATTR_CODEBASE ((DOM::emptyNamespace << 16) | 224)
++#define ATTR_CONTENT ((DOM::emptyNamespace << 16) | 225)
++#define ATTR_DATA ((DOM::emptyNamespace << 16) | 226)
++#define ATTR_DATETIME ((DOM::emptyNamespace << 16) | 227)
++#define ATTR_FOR ((DOM::emptyNamespace << 16) | 228)
++#define ATTR_HEADERS ((DOM::emptyNamespace << 16) | 229)
++#define ATTR_XLINK_HREF ((DOM::xlinkNamespace << 16) | 230)
++#define ATTR_HREF ((DOM::emptyNamespace << 16) | 230)
++#define ATTR_ID ((DOM::emptyNamespace << 16) | 231)
++#define ATTR_LONGDESC ((DOM::emptyNamespace << 16) | 232)
++#define ATTR_NAME ((DOM::emptyNamespace << 16) | 233)
++#define ATTR_ONBLUR ((DOM::emptyNamespace << 16) | 234)
++#define ATTR_ONCHANGE ((DOM::emptyNamespace << 16) | 235)
++#define ATTR_ONCLICK ((DOM::emptyNamespace << 16) | 236)
++#define ATTR_ONDBLCLICK ((DOM::emptyNamespace << 16) | 237)
++#define ATTR_ONFOCUS ((DOM::emptyNamespace << 16) | 238)
++#define ATTR_ONKEYDOWN ((DOM::emptyNamespace << 16) | 239)
++#define ATTR_ONKEYPRESS ((DOM::emptyNamespace << 16) | 240)
++#define ATTR_ONKEYUP ((DOM::emptyNamespace << 16) | 241)
++#define ATTR_ONLOAD ((DOM::emptyNamespace << 16) | 242)
++#define ATTR_ONMOUSEDOWN ((DOM::emptyNamespace << 16) | 243)
++#define ATTR_ONMOUSEMOVE ((DOM::emptyNamespace << 16) | 244)
++#define ATTR_ONMOUSEOUT ((DOM::emptyNamespace << 16) | 245)
++#define ATTR_ONMOUSEOVER ((DOM::emptyNamespace << 16) | 246)
++#define ATTR_ONMOUSEUP ((DOM::emptyNamespace << 16) | 247)
++#define ATTR_ONRESET ((DOM::emptyNamespace << 16) | 248)
++#define ATTR_ONSELECT ((DOM::emptyNamespace << 16) | 249)
++#define ATTR_ONSCROLL ((DOM::emptyNamespace << 16) | 250)
++#define ATTR_ONSUBMIT ((DOM::emptyNamespace << 16) | 251)
++#define ATTR_ONUNLOAD ((DOM::emptyNamespace << 16) | 252)
++#define ATTR_PROFILE ((DOM::emptyNamespace << 16) | 253)
++#define ATTR_PROMPT ((DOM::emptyNamespace << 16) | 254)
++#define ATTR_SCHEME ((DOM::emptyNamespace << 16) | 255)
++#define ATTR_SRC ((DOM::emptyNamespace << 16) | 256)
++#define ATTR_STANDBY ((DOM::emptyNamespace << 16) | 257)
++#define ATTR_SUMMARY ((DOM::emptyNamespace << 16) | 258)
++#define ATTR_USEMAP ((DOM::emptyNamespace << 16) | 259)
++#define ATTR_VALUE ((DOM::emptyNamespace << 16) | 260)
++#define ID_ALTGLYPH 261
++#define ID_ALTGLYPHDEF 262
++#define ID_ALTGLYPHITEM 263
++#define ID_ANIMATE 264
++#define ATTR_ANIMATE ((DOM::emptyNamespace << 16) | 264)
++#define ID_ANIMATECOLOR 265
++#define ID_ANIMATEMOTION 266
++#define ID_ANIMATETRANSFORM 267
++#define ID_SET 268
++#define ID_CIRCLE 269
++#define ID_CLIPPATH 270
++#define ID_COLOR_PROFILE 271
++#define ID_CURSOR 272
++#define ATTR_CURSOR ((DOM::emptyNamespace << 16) | 272)
++#define ID_DEFINITION_SRC 273
++#define ID_DEFS 274
++#define ID_DESC 275
++#define ID_ELLIPSE 276
++#define ID_FEBLEND 277
++#define ID_FECOLORMATRIX 278
++#define ATTR_FECOLORMATRIX ((DOM::emptyNamespace << 16) | 278)
++#define ID_FECOMPONENTTRANSFER 279
++#define ID_FECOMPOSITE 280
++#define ATTR_FECOMPOSITE ((DOM::emptyNamespace << 16) | 280)
++#define ID_FECONVOLVEMATRIX 281
++#define ID_FEDIFFUSELIGHTING 282
++#define ID_FEDISPLACEMENTMAP 283
++#define ID_FEDISTANTLIGHT 284
++#define ID_FEFLOOD 285
++#define ID_FEFUNCA 286
++#define ID_FEFUNCB 287
++#define ID_FEFUNCG 288
++#define ID_FEFUNCR 289
++#define ID_FEGAUSSIANBLUR 290
++#define ATTR_FEGAUSSIANBLUR ((DOM::emptyNamespace << 16) | 290)
++#define ID_FEIMAGE 291
++#define ID_FEMERGE 292
++#define ID_FEMERGENODE 293
++#define ID_FEMORPHOLOGY 294
++#define ATTR_FEMORPHOLOGY ((DOM::emptyNamespace << 16) | 294)
++#define ID_FEOFFSET 295
++#define ID_FEPOINTLIGHT 296
++#define ID_FESPECULARLIGHTING 297
++#define ID_FESPOTLIGHT 298
++#define ID_FETILE 299
++#define ATTR_FETILE ((DOM::emptyNamespace << 16) | 299)
++#define ID_FETURBULENCE 300
++#define ID_FILTER 301
++#define ATTR_FILTER ((DOM::emptyNamespace << 16) | 301)
++#define ID_FONT_FACE 302
++#define ID_FONT_FACE_FORMAT 303
++#define ID_FONT_FACE_NAME 304
++#define ID_FONT_FACE_SRC 305
++#define ID_FONT_FACE_URI 306
++#define ID_FOREIGNOBJECT 307
++#define ID_G 308
++#define ID_GLYPH 309
++#define ID_GLYPHREF 310
++#define ATTR_GLYPHREF ((DOM::emptyNamespace << 16) | 310)
++#define ID_HKERN 311
++#define ID_LINE 312
++#define ID_LINEARGRADIENT 313
++#define ID_MARKER 314
++#define ID_MASK 315
++#define ATTR_MASK ((DOM::emptyNamespace << 16) | 315)
++#define ID_METADATA 316
++#define ID_MISSING_GLYPH 317
++#define ID_MPATH 318
++#define ID_PATH 319
++#define ATTR_PATH ((DOM::emptyNamespace << 16) | 319)
++#define ID_PATTERN 320
++#define ID_POLYGON 321
++#define ID_POLYLINE 322
++#define ID_RADIALGRADIENT 323
++#define ID_RECT 324
++#define ID_STOP 325
++#define ID_SVG 326
++#define ID_SWITCH 327
++#define ID_SYMBOL 328
++#define ID_TEXTPATH 329
++#define ID_TREF 330
++#define ID_TSPAN 331
++#define ID_USE 332
++#define ID_VIEW 333
++#define ID_VKERN 334
++#define ATTR_ACCENT_HEIGHT ((DOM::emptyNamespace << 16) | 335)
++#define ATTR_ACCUMULATE ((DOM::emptyNamespace << 16) | 336)
++#define ATTR_ADDITIVE ((DOM::emptyNamespace << 16) | 337)
++#define ATTR_ALIGNMENT_BASELINE ((DOM::emptyNamespace << 16) | 338)
++#define ATTR_ALPHABETIC ((DOM::emptyNamespace << 16) | 339)
++#define ATTR_AMPLITUDE ((DOM::emptyNamespace << 16) | 340)
++#define ATTR_ARABIC_FORM ((DOM::emptyNamespace << 16) | 341)
++#define ATTR_ASCENT ((DOM::emptyNamespace << 16) | 342)
++#define ATTR_ATTRIBUTENAME ((DOM::emptyNamespace << 16) | 343)
++#define ATTR_ATTRIBUTETYPE ((DOM::emptyNamespace << 16) | 344)
++#define ATTR_AZIMUTH ((DOM::emptyNamespace << 16) | 345)
++#define ATTR_BASEFREQUENCY ((DOM::emptyNamespace << 16) | 346)
++#define ATTR_BASELINE_SHIFT ((DOM::emptyNamespace << 16) | 347)
++#define ATTR_BASEPROFILE ((DOM::emptyNamespace << 16) | 348)
++#define ATTR_BBOX ((DOM::emptyNamespace << 16) | 349)
++#define ATTR_BEGIN ((DOM::emptyNamespace << 16) | 350)
++#define ATTR_BIAS ((DOM::emptyNamespace << 16) | 351)
++#define ATTR_BY ((DOM::emptyNamespace << 16) | 352)
++#define ATTR_CALCMODE ((DOM::emptyNamespace << 16) | 353)
++#define ATTR_CAP_HEIGHT ((DOM::emptyNamespace << 16) | 354)
++#define ATTR_CLIP ((DOM::emptyNamespace << 16) | 355)
++#define ATTR_CLIP_PATH ((DOM::emptyNamespace << 16) | 356)
++#define ATTR_CLIP_RULE ((DOM::emptyNamespace << 16) | 357)
++#define ATTR_CLIPPATHUNITS ((DOM::emptyNamespace << 16) | 358)
++#define ATTR_COLOR_INTERPOLATION ((DOM::emptyNamespace << 16) | 359)
++#define ATTR_COLOR_INTERPOLATION_FILTERS ((DOM::emptyNamespace << 16) | 360)
++#define ATTR_COLOR_PROFILE ((DOM::emptyNamespace << 16) | 361)
++#define ATTR_COLOR_RENDERING ((DOM::emptyNamespace << 16) | 362)
++#define ATTR_CONTENTSCRIPTTYPE ((DOM::emptyNamespace << 16) | 363)
++#define ATTR_CONTENTSTYLETYPE ((DOM::emptyNamespace << 16) | 364)
++#define ATTR_CX ((DOM::emptyNamespace << 16) | 365)
++#define ATTR_CY ((DOM::emptyNamespace << 16) | 366)
++#define ATTR_D ((DOM::emptyNamespace << 16) | 367)
++#define ATTR_DESCENT ((DOM::emptyNamespace << 16) | 368)
++#define ATTR_DIFFUSECONSTANT ((DOM::emptyNamespace << 16) | 369)
++#define ATTR_DISPLAY ((DOM::emptyNamespace << 16) | 370)
++#define ATTR_DIVISOR ((DOM::emptyNamespace << 16) | 371)
++#define ATTR_DOMINANT_BASELINE ((DOM::emptyNamespace << 16) | 372)
++#define ATTR_DUR ((DOM::emptyNamespace << 16) | 373)
++#define ATTR_DX ((DOM::emptyNamespace << 16) | 374)
++#define ATTR_DY ((DOM::emptyNamespace << 16) | 375)
++#define ATTR_EDGEMODE ((DOM::emptyNamespace << 16) | 376)
++#define ATTR_ELEVATION ((DOM::emptyNamespace << 16) | 377)
++#define ATTR_ENABLE_BACKGROUND ((DOM::emptyNamespace << 16) | 378)
++#define ATTR_EXPONENT ((DOM::emptyNamespace << 16) | 379)
++#define ATTR_EXTERNALRESOURCESREQUIRED ((DOM::emptyNamespace << 16) | 380)
++#define ATTR_FILL ((DOM::emptyNamespace << 16) | 381)
++#define ATTR_FILL_OPACITY ((DOM::emptyNamespace << 16) | 382)
++#define ATTR_FILL_RULE ((DOM::emptyNamespace << 16) | 383)
++#define ATTR_FILTERRES ((DOM::emptyNamespace << 16) | 384)
++#define ATTR_FILTERUNITS ((DOM::emptyNamespace << 16) | 385)
++#define ATTR_FLOOD_COLOR ((DOM::emptyNamespace << 16) | 386)
++#define ATTR_FLOOD_OPACITY ((DOM::emptyNamespace << 16) | 387)
++#define ATTR_FONT_FAMILY ((DOM::emptyNamespace << 16) | 388)
++#define ATTR_FONT_SIZE ((DOM::emptyNamespace << 16) | 389)
++#define ATTR_FONT_SIZE_ADJUST ((DOM::emptyNamespace << 16) | 390)
++#define ATTR_FONT_STRETCH ((DOM::emptyNamespace << 16) | 391)
++#define ATTR_FONT_STYLE ((DOM::emptyNamespace << 16) | 392)
++#define ATTR_FONT_VARIANT ((DOM::emptyNamespace << 16) | 393)
++#define ATTR_FONT_WEIGHT ((DOM::emptyNamespace << 16) | 394)
++#define ATTR_FORMAT ((DOM::emptyNamespace << 16) | 395)
++#define ATTR_FROM ((DOM::emptyNamespace << 16) | 396)
++#define ATTR_FX ((DOM::emptyNamespace << 16) | 397)
++#define ATTR_FY ((DOM::emptyNamespace << 16) | 398)
++#define ATTR_G1 ((DOM::emptyNamespace << 16) | 399)
++#define ATTR_G2 ((DOM::emptyNamespace << 16) | 400)
++#define ATTR_GLYPH_NAME ((DOM::emptyNamespace << 16) | 401)
++#define ATTR_GLYPH_ORIENTATION_HORIZONTAL ((DOM::emptyNamespace << 16) | 402)
++#define ATTR_GLYPH_ORIENTATION_VERTICAL ((DOM::emptyNamespace << 16) | 403)
++#define ATTR_GRADIENTTRANSFORM ((DOM::emptyNamespace << 16) | 404)
++#define ATTR_GRADIENTUNITS ((DOM::emptyNamespace << 16) | 405)
++#define ATTR_HANGING ((DOM::emptyNamespace << 16) | 406)
++#define ATTR_HORIZ_ADV_X ((DOM::emptyNamespace << 16) | 407)
++#define ATTR_HORIZ_ORIGIN_X ((DOM::emptyNamespace << 16) | 408)
++#define ATTR_HORIZ_ORIGIN_Y ((DOM::emptyNamespace << 16) | 409)
++#define ATTR_IDEOGRAPHIC ((DOM::emptyNamespace << 16) | 410)
++#define ATTR_IMAGE_RENDERING ((DOM::emptyNamespace << 16) | 411)
++#define ATTR_IN ((DOM::emptyNamespace << 16) | 412)
++#define ATTR_IN2 ((DOM::emptyNamespace << 16) | 413)
++#define ATTR_INTERCEPT ((DOM::emptyNamespace << 16) | 414)
++#define ATTR_K ((DOM::emptyNamespace << 16) | 415)
++#define ATTR_K1 ((DOM::emptyNamespace << 16) | 416)
++#define ATTR_K2 ((DOM::emptyNamespace << 16) | 417)
++#define ATTR_K3 ((DOM::emptyNamespace << 16) | 418)
++#define ATTR_K4 ((DOM::emptyNamespace << 16) | 419)
++#define ATTR_KERNELMATRIX ((DOM::emptyNamespace << 16) | 420)
++#define ATTR_KERNELUNITLENGTH ((DOM::emptyNamespace << 16) | 421)
++#define ATTR_KERNING ((DOM::emptyNamespace << 16) | 422)
++#define ATTR_KEYPOINTS ((DOM::emptyNamespace << 16) | 423)
++#define ATTR_KEYSPLINES ((DOM::emptyNamespace << 16) | 424)
++#define ATTR_KEYTIMES ((DOM::emptyNamespace << 16) | 425)
++#define ATTR_LENGTHADJUST ((DOM::emptyNamespace << 16) | 426)
++#define ATTR_LETTER_SPACING ((DOM::emptyNamespace << 16) | 427)
++#define ATTR_LIGHTING_COLOR ((DOM::emptyNamespace << 16) | 428)
++#define ATTR_LIMITINGCONEANGLE ((DOM::emptyNamespace << 16) | 429)
++#define ATTR_LOCAL ((DOM::emptyNamespace << 16) | 430)
++#define ATTR_MARKER_END ((DOM::emptyNamespace << 16) | 431)
++#define ATTR_MARKER_MID ((DOM::emptyNamespace << 16) | 432)
++#define ATTR_MARKER_START ((DOM::emptyNamespace << 16) | 433)
++#define ATTR_MARKERHEIGHT ((DOM::emptyNamespace << 16) | 434)
++#define ATTR_MARKERUNITS ((DOM::emptyNamespace << 16) | 435)
++#define ATTR_MARKERWIDTH ((DOM::emptyNamespace << 16) | 436)
++#define ATTR_MASKCONTENTUNITS ((DOM::emptyNamespace << 16) | 437)
++#define ATTR_MASKUNITS ((DOM::emptyNamespace << 16) | 438)
++#define ATTR_MATHEMATICAL ((DOM::emptyNamespace << 16) | 439)
++#define ATTR_MAX ((DOM::emptyNamespace << 16) | 440)
++#define ATTR_MIN ((DOM::emptyNamespace << 16) | 441)
++#define ATTR_MODE ((DOM::emptyNamespace << 16) | 442)
++#define ATTR_NUMOCTAVES ((DOM::emptyNamespace << 16) | 443)
++#define ATTR_OFFSET ((DOM::emptyNamespace << 16) | 444)
++#define ATTR_ONACTIVATE ((DOM::emptyNamespace << 16) | 445)
++#define ATTR_ONBEGIN ((DOM::emptyNamespace << 16) | 446)
++#define ATTR_ONEND ((DOM::emptyNamespace << 16) | 447)
++#define ATTR_ONFOCUSIN ((DOM::emptyNamespace << 16) | 448)
++#define ATTR_ONFOCUSOUT ((DOM::emptyNamespace << 16) | 449)
++#define ATTR_ONREPEAT ((DOM::emptyNamespace << 16) | 450)
++#define ATTR_ONZOOM ((DOM::emptyNamespace << 16) | 451)
++#define ATTR_OPACITY ((DOM::emptyNamespace << 16) | 452)
++#define ATTR_OPERATOR ((DOM::emptyNamespace << 16) | 453)
++#define ATTR_ORDER ((DOM::emptyNamespace << 16) | 454)
++#define ATTR_ORIENT ((DOM::emptyNamespace << 16) | 455)
++#define ATTR_ORIENTATION ((DOM::emptyNamespace << 16) | 456)
++#define ATTR_ORIGIN ((DOM::emptyNamespace << 16) | 457)
++#define ATTR_OVERFLOW ((DOM::emptyNamespace << 16) | 458)
++#define ATTR_OVERLINE_POSITION ((DOM::emptyNamespace << 16) | 459)
++#define ATTR_OVERLINE_THICKNESS ((DOM::emptyNamespace << 16) | 460)
++#define ATTR_PANOSE_1 ((DOM::emptyNamespace << 16) | 461)
++#define ATTR_PATHLENGTH ((DOM::emptyNamespace << 16) | 462)
++#define ATTR_PATTERNCONTENTUNITS ((DOM::emptyNamespace << 16) | 463)
++#define ATTR_PATTERNTRANSFORM ((DOM::emptyNamespace << 16) | 464)
++#define ATTR_PATTERNUNITS ((DOM::emptyNamespace << 16) | 465)
++#define ATTR_POINTER_EVENTS ((DOM::emptyNamespace << 16) | 466)
++#define ATTR_POINTS ((DOM::emptyNamespace << 16) | 467)
++#define ATTR_POINTSATX ((DOM::emptyNamespace << 16) | 468)
++#define ATTR_POINTSATY ((DOM::emptyNamespace << 16) | 469)
++#define ATTR_POINTSATZ ((DOM::emptyNamespace << 16) | 470)
++#define ATTR_PRESERVEALPHA ((DOM::emptyNamespace << 16) | 471)
++#define ATTR_PRESERVEASPECTRATIO ((DOM::emptyNamespace << 16) | 472)
++#define ATTR_PRIMITIVEUNITS ((DOM::emptyNamespace << 16) | 473)
++#define ATTR_R ((DOM::emptyNamespace << 16) | 474)
++#define ATTR_RADIUS ((DOM::emptyNamespace << 16) | 475)
++#define ATTR_REFX ((DOM::emptyNamespace << 16) | 476)
++#define ATTR_REFY ((DOM::emptyNamespace << 16) | 477)
++#define ATTR_RENDERING_INTENT ((DOM::emptyNamespace << 16) | 478)
++#define ATTR_REPEATCOUNT ((DOM::emptyNamespace << 16) | 479)
++#define ATTR_REPEATDUR ((DOM::emptyNamespace << 16) | 480)
++#define ATTR_REQUIREDEXTENSIONS ((DOM::emptyNamespace << 16) | 481)
++#define ATTR_REQUIREDFEATURES ((DOM::emptyNamespace << 16) | 482)
++#define ATTR_RESTART ((DOM::emptyNamespace << 16) | 483)
++#define ATTR_RESULT ((DOM::emptyNamespace << 16) | 484)
++#define ATTR_ROTATE ((DOM::emptyNamespace << 16) | 485)
++#define ATTR_RX ((DOM::emptyNamespace << 16) | 486)
++#define ATTR_RY ((DOM::emptyNamespace << 16) | 487)
++#define ATTR_SCALE ((DOM::emptyNamespace << 16) | 488)
++#define ATTR_SEED ((DOM::emptyNamespace << 16) | 489)
++#define ATTR_SHAPE_RENDERING ((DOM::emptyNamespace << 16) | 490)
++#define ATTR_SLOPE ((DOM::emptyNamespace << 16) | 491)
++#define ATTR_SPACING ((DOM::emptyNamespace << 16) | 492)
++#define ATTR_SPECULARCONSTANT ((DOM::emptyNamespace << 16) | 493)
++#define ATTR_SPECULAREXPONENT ((DOM::emptyNamespace << 16) | 494)
++#define ATTR_SPREADMETHOD ((DOM::emptyNamespace << 16) | 495)
++#define ATTR_STARTOFFSET ((DOM::emptyNamespace << 16) | 496)
++#define ATTR_STDDEVIATION ((DOM::emptyNamespace << 16) | 497)
++#define ATTR_STEMH ((DOM::emptyNamespace << 16) | 498)
++#define ATTR_STEMV ((DOM::emptyNamespace << 16) | 499)
++#define ATTR_STITCHTILES ((DOM::emptyNamespace << 16) | 500)
++#define ATTR_STOP_COLOR ((DOM::emptyNamespace << 16) | 501)
++#define ATTR_STOP_OPACITY ((DOM::emptyNamespace << 16) | 502)
++#define ATTR_STRIKETHROUGH_POSITION ((DOM::emptyNamespace << 16) | 503)
++#define ATTR_STRIKETHROUGH_THICKNESS ((DOM::emptyNamespace << 16) | 504)
++#define ATTR_STROKE ((DOM::emptyNamespace << 16) | 505)
++#define ATTR_STROKE_DASHARRAY ((DOM::emptyNamespace << 16) | 506)
++#define ATTR_STROKE_DASHOFFSET ((DOM::emptyNamespace << 16) | 507)
++#define ATTR_STROKE_LINECAP ((DOM::emptyNamespace << 16) | 508)
++#define ATTR_STROKE_LINEJOIN ((DOM::emptyNamespace << 16) | 509)
++#define ATTR_STROKE_MITERLIMIT ((DOM::emptyNamespace << 16) | 510)
++#define ATTR_STROKE_OPACITY ((DOM::emptyNamespace << 16) | 511)
++#define ATTR_STROKE_WIDTH ((DOM::emptyNamespace << 16) | 512)
++#define ATTR_SURFACESCALE ((DOM::emptyNamespace << 16) | 513)
++#define ATTR_SYSTEMLANGUAGE ((DOM::emptyNamespace << 16) | 514)
++#define ATTR_TABLEVALUES ((DOM::emptyNamespace << 16) | 515)
++#define ATTR_TARGETX ((DOM::emptyNamespace << 16) | 516)
++#define ATTR_TARGETY ((DOM::emptyNamespace << 16) | 517)
++#define ATTR_TEXT_ANCHOR ((DOM::emptyNamespace << 16) | 518)
++#define ATTR_TEXT_DECORATION ((DOM::emptyNamespace << 16) | 519)
++#define ATTR_TEXT_RENDERING ((DOM::emptyNamespace << 16) | 520)
++#define ATTR_TEXTLENGTH ((DOM::emptyNamespace << 16) | 521)
++#define ATTR_TO ((DOM::emptyNamespace << 16) | 522)
++#define ATTR_TRANSFORM ((DOM::emptyNamespace << 16) | 523)
++#define ATTR_U1 ((DOM::emptyNamespace << 16) | 524)
++#define ATTR_U2 ((DOM::emptyNamespace << 16) | 525)
++#define ATTR_UNDERLINE_POSITION ((DOM::emptyNamespace << 16) | 526)
++#define ATTR_UNDERLINE_THICKNESS ((DOM::emptyNamespace << 16) | 527)
++#define ATTR_UNICODE ((DOM::emptyNamespace << 16) | 528)
++#define ATTR_UNICODE_BIDI ((DOM::emptyNamespace << 16) | 529)
++#define ATTR_UNICODE_RANGE ((DOM::emptyNamespace << 16) | 530)
++#define ATTR_UNITS_PER_EM ((DOM::emptyNamespace << 16) | 531)
++#define ATTR_V_ALPHABETIC ((DOM::emptyNamespace << 16) | 532)
++#define ATTR_V_HANGING ((DOM::emptyNamespace << 16) | 533)
++#define ATTR_V_IDEOGRAPHIC ((DOM::emptyNamespace << 16) | 534)
++#define ATTR_V_MATHEMATICAL ((DOM::emptyNamespace << 16) | 535)
++#define ATTR_VALUES ((DOM::emptyNamespace << 16) | 536)
++#define ATTR_VERT_ADV_Y ((DOM::emptyNamespace << 16) | 537)
++#define ATTR_VERT_ORIGIN_X ((DOM::emptyNamespace << 16) | 538)
++#define ATTR_VERT_ORIGIN_Y ((DOM::emptyNamespace << 16) | 539)
++#define ATTR_VIEWBOX ((DOM::emptyNamespace << 16) | 540)
++#define ATTR_VIEWTARGET ((DOM::emptyNamespace << 16) | 541)
++#define ATTR_WIDTHS ((DOM::emptyNamespace << 16) | 542)
++#define ATTR_WORD_SPACING ((DOM::emptyNamespace << 16) | 543)
++#define ATTR_WRITING_MODE ((DOM::emptyNamespace << 16) | 544)
++#define ATTR_X ((DOM::emptyNamespace << 16) | 545)
++#define ATTR_X_HEIGHT ((DOM::emptyNamespace << 16) | 546)
++#define ATTR_X1 ((DOM::emptyNamespace << 16) | 547)
++#define ATTR_X2 ((DOM::emptyNamespace << 16) | 548)
++#define ATTR_XCHANNELSELECTOR ((DOM::emptyNamespace << 16) | 549)
++#define ATTR_Y ((DOM::emptyNamespace << 16) | 550)
++#define ATTR_Y1 ((DOM::emptyNamespace << 16) | 551)
++#define ATTR_Y2 ((DOM::emptyNamespace << 16) | 552)
++#define ATTR_YCHANNELSELECTOR ((DOM::emptyNamespace << 16) | 553)
++#define ATTR_Z ((DOM::emptyNamespace << 16) | 554)
++#define ATTR_ZOOMANDPAN ((DOM::emptyNamespace << 16) | 555)
++#define ATTR_XLINK_ACTUATE ((DOM::xlinkNamespace << 16) | 556)
++#define ATTR_XLINK_ARCROLE ((DOM::xlinkNamespace << 16) | 557)
++#define ATTR_XLINK_ROLE ((DOM::xlinkNamespace << 16) | 558)
++#define ATTR_XLINK_SHOW ((DOM::xlinkNamespace << 16) | 559)
  #define ID_LAST_TAG 110
  #define ID_CLOSE_TAG 16384
- #define ATTR_LAST_ATTR 257
+-#define ATTR_LAST_ATTR 257
+-#define ATTR_LAST_CI_ATTR 214
++#define ATTR_LAST_ATTR 260
++#define ATTR_LAST_CI_ATTR 217
+ 
+ #define caseSensitiveAttr(id) (((localNamePart(id)) > ATTR_LAST_CI_ATTR || (id) == ATTR_ABBR || (id) == ATTR_CITE || (id) == ATTR_CODE || (id) == ATTR_LABEL || (id) == ATTR_OBJECT || (id) == ATTR_TITLE))
+ 
+Index: misc/htmlattrs.in
+===================================================================
+--- misc/htmlattrs.in	(revision 1048061)
++++ misc/htmlattrs.in	(working copy)
+@@ -34,6 +34,8 @@
+ direction
+ disabled
+ enctype
++encryption
++encryption-key
+ end
+ face
+ frame
+@@ -88,6 +90,7 @@
+ scrolling
+ selected
+ shape
++signing-key
+ size
+ span
+ start
+Index: misc/htmlattrs.c
+===================================================================
+--- misc/htmlattrs.c	(revision 1048061)
++++ misc/htmlattrs.c	(working copy)
+@@ -40,7 +40,7 @@
+ };
+ enum
+   {
+-    TOTAL_KEYWORDS = 159,
++    TOTAL_KEYWORDS = 162,
+     MIN_WORD_LENGTH = 2,
+     MAX_WORD_LENGTH = 15,
+     MIN_HASH_VALUE = 3,
+@@ -65,14 +65,14 @@
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+-      636, 636, 636, 636, 636,  30,   5, 636, 636, 636,
++      636, 636, 636, 636, 636,   0,   5, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636,  10,  30,   0,
+        10,   5,  10,  15,  35,  65, 130, 105,   5,  40,
+-       80,   5,   0,   0,   0,   0,   5,  25, 135, 110,
++       80,   5,   0,  10,   0,   0,   5,  25, 135, 110,
+        50, 125,  15, 636, 636, 636, 636, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+       636, 636, 636, 636, 636, 636, 636, 636, 636, 636,
+@@ -196,25 +196,25 @@
+     char spool_attr_str50[sizeof("bgcolor")];
+     char spool_attr_str51[sizeof("usemap")];
+     char spool_attr_str52[sizeof("charset")];
+-    char spool_attr_str53[sizeof("span")];
+-    char spool_attr_str54[sizeof("profile")];
++    char spool_attr_str53[sizeof("profile")];
++    char spool_attr_str54[sizeof("accept-charset")];
+     char spool_attr_str55[sizeof("scheme")];
+     char spool_attr_str56[sizeof("colspan")];
+     char spool_attr_str57[sizeof("controls")];
+-    char spool_attr_str58[sizeof("pagex")];
+-    char spool_attr_str59[sizeof("charoff")];
+-    char spool_attr_str60[sizeof("onresize")];
+-    char spool_attr_str61[sizeof("html")];
+-    char spool_attr_str62[sizeof("method")];
+-    char spool_attr_str63[sizeof("loopend")];
+-    char spool_attr_str64[sizeof("rows")];
+-    char spool_attr_str65[sizeof("onmouseup")];
+-    char spool_attr_str66[sizeof("longdesc")];
+-    char spool_attr_str67[sizeof("wrap")];
+-    char spool_attr_str68[sizeof("ismap")];
+-    char spool_attr_str69[sizeof("frameborder")];
+-    char spool_attr_str70[sizeof("oversrc")];
+-    char spool_attr_str71[sizeof("accept-charset")];
++    char spool_attr_str58[sizeof("span")];
++    char spool_attr_str59[sizeof("pagex")];
++    char spool_attr_str60[sizeof("charoff")];
++    char spool_attr_str61[sizeof("onresize")];
++    char spool_attr_str62[sizeof("html")];
++    char spool_attr_str63[sizeof("method")];
++    char spool_attr_str64[sizeof("loopend")];
++    char spool_attr_str65[sizeof("rows")];
++    char spool_attr_str66[sizeof("onmouseup")];
++    char spool_attr_str67[sizeof("longdesc")];
++    char spool_attr_str68[sizeof("wrap")];
++    char spool_attr_str69[sizeof("ismap")];
++    char spool_attr_str70[sizeof("frameborder")];
++    char spool_attr_str71[sizeof("oversrc")];
+     char spool_attr_str72[sizeof("onmouseout")];
+     char spool_attr_str73[sizeof("classid")];
+     char spool_attr_str74[sizeof("lang")];
+@@ -284,24 +284,27 @@
+     char spool_attr_str138[sizeof("width")];
+     char spool_attr_str139[sizeof("behavior")];
+     char spool_attr_str140[sizeof("playcount")];
+-    char spool_attr_str141[sizeof("onmousedown")];
+-    char spool_attr_str142[sizeof("version")];
+-    char spool_attr_str143[sizeof("autoplay")];
+-    char spool_attr_str144[sizeof("alink")];
+-    char spool_attr_str145[sizeof("direction")];
+-    char spool_attr_str146[sizeof("background")];
+-    char spool_attr_str147[sizeof("link")];
+-    char spool_attr_str148[sizeof("contenteditable")];
+-    char spool_attr_str149[sizeof("http-equiv")];
+-    char spool_attr_str150[sizeof("valign")];
+-    char spool_attr_str151[sizeof("valuetype")];
+-    char spool_attr_str152[sizeof("summary")];
+-    char spool_attr_str153[sizeof("marginheight")];
+-    char spool_attr_str154[sizeof("unknown")];
+-    char spool_attr_str155[sizeof("vlink")];
+-    char spool_attr_str156[sizeof("onkeydown")];
+-    char spool_attr_str157[sizeof("marginwidth")];
+-    char spool_attr_str158[sizeof("visibility")];
++    char spool_attr_str141[sizeof("encryption")];
++    char spool_attr_str142[sizeof("onmousedown")];
++    char spool_attr_str143[sizeof("version")];
++    char spool_attr_str144[sizeof("autoplay")];
++    char spool_attr_str145[sizeof("alink")];
++    char spool_attr_str146[sizeof("direction")];
++    char spool_attr_str147[sizeof("background")];
++    char spool_attr_str148[sizeof("http-equiv")];
++    char spool_attr_str149[sizeof("link")];
++    char spool_attr_str150[sizeof("contenteditable")];
++    char spool_attr_str151[sizeof("valign")];
++    char spool_attr_str152[sizeof("valuetype")];
++    char spool_attr_str153[sizeof("summary")];
++    char spool_attr_str154[sizeof("marginheight")];
++    char spool_attr_str155[sizeof("unknown")];
++    char spool_attr_str156[sizeof("vlink")];
++    char spool_attr_str157[sizeof("onkeydown")];
++    char spool_attr_str158[sizeof("marginwidth")];
++    char spool_attr_str159[sizeof("encryption-key")];
++    char spool_attr_str160[sizeof("signing-key")];
++    char spool_attr_str161[sizeof("visibility")];
+   };
+ static const struct spool_attr_t spool_attr_contents =
+   {
+@@ -358,11 +361,12 @@
+     "bgcolor",
+     "usemap",
+     "charset",
+-    "span",
+     "profile",
++    "accept-charset",
+     "scheme",
+     "colspan",
+     "controls",
++    "span",
+     "pagex",
+     "charoff",
+     "onresize",
+@@ -376,7 +380,6 @@
+     "ismap",
+     "frameborder",
+     "oversrc",
+-    "accept-charset",
+     "onmouseout",
+     "classid",
+     "lang",
+@@ -446,15 +449,16 @@
+     "width",
+     "behavior",
+     "playcount",
++    "encryption",
+     "onmousedown",
+     "version",
+     "autoplay",
+     "alink",
+     "direction",
+     "background",
++    "http-equiv",
+     "link",
+     "contenteditable",
+-    "http-equiv",
+     "valign",
+     "valuetype",
+     "summary",
+@@ -463,239 +467,241 @@
+     "vlink",
+     "onkeydown",
+     "marginwidth",
++    "encryption-key",
++    "signing-key",
+     "visibility"
+   };
+ #define spool_attr ((const char *) &spool_attr_contents)
+ 
+ static const struct attrs wordlist_attr[] =
+   {
+-#line 164 "htmlattrs.gperf"
++#line 167 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str0, ATTR_SRC},
+-#line 107 "htmlattrs.gperf"
++#line 110 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str1, ATTR_TOP},
+ #line 34 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str2, ATTR_COLS},
+-#line 134 "htmlattrs.gperf"
++#line 137 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str3, ATTR_FOR},
+-#line 62 "htmlattrs.gperf"
++#line 64 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str4, ATTR_LOOP},
+ #line 33 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str5, ATTR_COLOR},
+-#line 87 "htmlattrs.gperf"
++#line 89 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str6, ATTR_POSTER},
+-#line 89 "htmlattrs.gperf"
++#line 91 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str7, ATTR_REL},
+-#line 129 "htmlattrs.gperf"
++#line 132 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str8, ATTR_CODE},
+ #line 39 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str9, ATTR_COORDS},
+-#line 46 "htmlattrs.gperf"
++#line 48 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str10, ATTR_END},
+-#line 94 "htmlattrs.gperf"
++#line 96 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str11, ATTR_SCOPE},
+-#line 77 "htmlattrs.gperf"
++#line 79 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str12, ATTR_ONERROR},
+-#line 110 "htmlattrs.gperf"
++#line 113 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str13, ATTR_TYPE},
+-#line 156 "htmlattrs.gperf"
++#line 159 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str14, ATTR_ONRESET},
+-#line 158 "htmlattrs.gperf"
++#line 161 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str15, ATTR_ONSCROLL},
+-#line 59 "htmlattrs.gperf"
++#line 61 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str16, ATTR_LEFT},
+ #line 12 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str17, ATTR_ACCEPT},
+-#line 157 "htmlattrs.gperf"
++#line 160 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str18, ATTR_ONSELECT},
+-#line 64 "htmlattrs.gperf"
++#line 66 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str19, ATTR_LOOPSTART},
+ #line 41 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str20, ATTR_DEFER},
+-#line 121 "htmlattrs.gperf"
++#line 124 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str21, ATTR_ABBR},
+-#line 102 "htmlattrs.gperf"
++#line 105 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str22, ATTR_START},
+-#line 150 "htmlattrs.gperf"
++#line 153 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str23, ATTR_ONLOAD},
+ #line 40 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str24, ATTR_DECLARE},
+-#line 98 "htmlattrs.gperf"
++#line 100 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str25, ATTR_SELECTED},
+-#line 47 "htmlattrs.gperf"
++#line 49 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str26, ATTR_FACE},
+ #line 22 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str27, ATTR_BORDER},
+-#line 136 "htmlattrs.gperf"
++#line 139 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str28, ATTR_HREF},
+-#line 127 "htmlattrs.gperf"
++#line 130 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str29, ATTR_CLASS},
+-#line 162 "htmlattrs.gperf"
++#line 165 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str30, ATTR_PROMPT},
+-#line 146 "htmlattrs.gperf"
++#line 149 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str31, ATTR_ONFOCUS},
+-#line 123 "htmlattrs.gperf"
++#line 126 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str32, ATTR_ALT},
+-#line 132 "htmlattrs.gperf"
++#line 135 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str33, ATTR_DATA},
+ #line 31 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str34, ATTR_CLEAR},
+-#line 53 "htmlattrs.gperf"
++#line 55 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str35, ATTR_HSPACE},
+ #line 36 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str36, ATTR_COMPACT},
+-#line 109 "htmlattrs.gperf"
++#line 112 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str37, ATTR_TRUESPEED},
+-#line 105 "htmlattrs.gperf"
++#line 108 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str38, ATTR_TARGET},
+-#line 76 "htmlattrs.gperf"
++#line 78 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str39, ATTR_ONABORT},
+-#line 130 "htmlattrs.gperf"
++#line 133 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str40, ATTR_CODEBASE},
+-#line 48 "htmlattrs.gperf"
++#line 50 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str41, ATTR_FRAME},
+ #line 23 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str42, ATTR_BORDERCOLOR},
+-#line 137 "htmlattrs.gperf"
++#line 140 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str43, ATTR_ID},
+-#line 106 "htmlattrs.gperf"
++#line 109 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str44, ATTR_TEXT},
+-#line 142 "htmlattrs.gperf"
++#line 145 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str45, ATTR_ONBLUR},
+-#line 135 "htmlattrs.gperf"
++#line 138 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str46, ATTR_HEADERS},
+ #line 26 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str47, ATTR_CHAR},
+-#line 138 "htmlattrs.gperf"
++#line 141 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str48, ATTR_LABEL},
+-#line 99 "htmlattrs.gperf"
++#line 101 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str49, ATTR_SHAPE},
+ #line 20 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str50, ATTR_BGCOLOR},
+-#line 168 "htmlattrs.gperf"
++#line 171 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str51, ATTR_USEMAP},
+ #line 29 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str52, ATTR_CHARSET},
+-#line 101 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str53, ATTR_SPAN},
+-#line 161 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str54, ATTR_PROFILE},
+-#line 163 "htmlattrs.gperf"
++#line 164 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str53, ATTR_PROFILE},
++#line 11 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str54, ATTR_ACCEPT_CHARSET},
++#line 166 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str55, ATTR_SCHEME},
+ #line 35 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str56, ATTR_COLSPAN},
+ #line 38 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str57, ATTR_CONTROLS},
++#line 104 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str58, ATTR_SPAN},
++#line 82 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str59, ATTR_PAGEX},
++#line 28 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str60, ATTR_CHAROFF},
+ #line 80 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str58, ATTR_PAGEX},
+-#line 28 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str59, ATTR_CHAROFF},
+-#line 78 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str60, ATTR_ONRESIZE},
+-#line 54 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str61, ATTR_HTML},
+-#line 69 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str62, ATTR_METHOD},
+-#line 63 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str63, ATTR_LOOPEND},
+-#line 91 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str64, ATTR_ROWS},
+-#line 155 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str65, ATTR_ONMOUSEUP},
+-#line 139 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str66, ATTR_LONGDESC},
+-#line 119 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str67, ATTR_WRAP},
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str61, ATTR_ONRESIZE},
+ #line 56 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str68, ATTR_ISMAP},
+-#line 49 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str69, ATTR_FRAMEBORDER},
+-#line 79 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str70, ATTR_OVERSRC},
+-#line 11 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str71, ATTR_ACCEPT_CHARSET},
+-#line 153 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str62, ATTR_HTML},
++#line 71 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str63, ATTR_METHOD},
++#line 65 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str64, ATTR_LOOPEND},
++#line 93 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str65, ATTR_ROWS},
++#line 158 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str66, ATTR_ONMOUSEUP},
++#line 142 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str67, ATTR_LONGDESC},
++#line 122 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str68, ATTR_WRAP},
++#line 58 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str69, ATTR_ISMAP},
++#line 51 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str70, ATTR_FRAMEBORDER},
++#line 81 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str71, ATTR_OVERSRC},
++#line 156 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str72, ATTR_ONMOUSEOUT},
+-#line 128 "htmlattrs.gperf"
++#line 131 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str73, ATTR_CLASSID},
+-#line 57 "htmlattrs.gperf"
++#line 59 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str74, ATTR_LANG},
+-#line 71 "htmlattrs.gperf"
++#line 73 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str75, ATTR_NOHREF},
+-#line 68 "htmlattrs.gperf"
++#line 70 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str76, ATTR_MEDIA},
+ #line 42 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str77, ATTR_DIR},
+-#line 126 "htmlattrs.gperf"
++#line 129 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str78, ATTR_CITE},
+-#line 74 "htmlattrs.gperf"
++#line 76 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str79, ATTR_NOSHADE},
+-#line 90 "htmlattrs.gperf"
++#line 92 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str80, ATTR_REV},
+-#line 93 "htmlattrs.gperf"
++#line 95 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str81, ATTR_RULES},
+-#line 141 "htmlattrs.gperf"
++#line 144 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str82, ATTR_OBJECT},
+ #line 45 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str83, ATTR_ENCTYPE},
+-#line 160 "htmlattrs.gperf"
++#line 163 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str84, ATTR_ONUNLOAD},
+-#line 100 "htmlattrs.gperf"
++#line 103 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str85, ATTR_SIZE},
+-#line 167 "htmlattrs.gperf"
++#line 170 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str86, ATTR_TITLE},
+ #line 32 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str87, ATTR_CODETYPE},
+-#line 140 "htmlattrs.gperf"
++#line 143 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str88, ATTR_NAME},
+-#line 117 "htmlattrs.gperf"
++#line 120 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str89, ATTR_VSPACE},
+ #line 21 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str90, ATTR_BGPROPERTIES},
+-#line 143 "htmlattrs.gperf"
++#line 146 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str91, ATTR_ONCHANGE},
+-#line 103 "htmlattrs.gperf"
++#line 106 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str92, ATTR_STYLE},
++#line 54 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str93, ATTR_HREFLANG},
+ #line 52 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str93, ATTR_HREFLANG},
+-#line 50 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str94, ATTR_HEIGHT},
+-#line 133 "htmlattrs.gperf"
++#line 136 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str95, ATTR_DATETIME},
+-#line 72 "htmlattrs.gperf"
++#line 74 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str96, ATTR_NORESIZE},
+-#line 81 "htmlattrs.gperf"
++#line 83 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str97, ATTR_PAGEY},
+-#line 122 "htmlattrs.gperf"
++#line 125 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str98, ATTR_ACTION},
+-#line 131 "htmlattrs.gperf"
++#line 134 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str99, ATTR_CONTENT},
+-#line 159 "htmlattrs.gperf"
++#line 162 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str100, ATTR_ONSUBMIT},
+-#line 96 "htmlattrs.gperf"
++#line 98 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str101, ATTR_SCROLLDELAY},
+-#line 144 "htmlattrs.gperf"
++#line 147 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str102, ATTR_ONCLICK},
+-#line 58 "htmlattrs.gperf"
++#line 60 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str103, ATTR_LANGUAGE},
+-#line 97 "htmlattrs.gperf"
++#line 99 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str104, ATTR_SCROLLING},
+ #line 30 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str105, ATTR_CHECKED},
+ #line 27 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str106, ATTR_CHALLENGE},
+-#line 82 "htmlattrs.gperf"
++#line 84 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str107, ATTR_PLAIN},
+ #line 25 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str108, ATTR_CELLSPACING},
+-#line 95 "htmlattrs.gperf"
++#line 97 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str109, ATTR_SCROLLAMOUNT},
+ #line 18 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str110, ATTR_AXIS},
+-#line 169 "htmlattrs.gperf"
++#line 172 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str111, ATTR_VALUE},
+-#line 75 "htmlattrs.gperf"
++#line 77 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str112, ATTR_NOWRAP},
+-#line 92 "htmlattrs.gperf"
++#line 94 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str113, ATTR_ROWSPAN},
+ #line 44 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str114, ATTR_DISABLED},
+@@ -703,90 +709,96 @@
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str115, ATTR_ALIGN},
+ #line 24 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str116, ATTR_CELLPADDING},
+-#line 108 "htmlattrs.gperf"
++#line 111 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str117, ATTR_TOPMARGIN},
+ #line 16 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str118, ATTR_AUTOCOMPLETE},
+-#line 73 "htmlattrs.gperf"
++#line 75 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str119, ATTR_NOSAVE},
+-#line 120 "htmlattrs.gperf"
++#line 123 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str120, ATTR_Z_INDEX},
+-#line 145 "htmlattrs.gperf"
++#line 148 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str121, ATTR_ONDBLCLICK},
+-#line 154 "htmlattrs.gperf"
++#line 157 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str122, ATTR_ONMOUSEOVER},
+-#line 60 "htmlattrs.gperf"
++#line 62 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str123, ATTR_LEFTMARGIN},
+-#line 88 "htmlattrs.gperf"
++#line 90 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str124, ATTR_READONLY},
+-#line 124 "htmlattrs.gperf"
++#line 127 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str125, ATTR_ARCHIVE},
+-#line 148 "htmlattrs.gperf"
++#line 151 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str126, ATTR_ONKEYPRESS},
++#line 88 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str127, ATTR_PLUGINURL},
+ #line 86 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str127, ATTR_PLUGINURL},
+-#line 84 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str128, ATTR_PLUGINPAGE},
+-#line 85 "htmlattrs.gperf"
++#line 87 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str129, ATTR_PLUGINSPAGE},
+-#line 70 "htmlattrs.gperf"
++#line 72 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str130, ATTR_MULTIPLE},
+ #line 13 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str131, ATTR_ACCESSKEY},
+-#line 67 "htmlattrs.gperf"
++#line 69 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str132, ATTR_MAXLENGTH},
+-#line 51 "htmlattrs.gperf"
++#line 53 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str133, ATTR_HIDDEN},
+-#line 149 "htmlattrs.gperf"
++#line 152 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str134, ATTR_ONKEYUP},
+-#line 152 "htmlattrs.gperf"
++#line 155 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str135, ATTR_ONMOUSEMOVE},
+-#line 104 "htmlattrs.gperf"
++#line 107 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str136, ATTR_TABINDEX},
+-#line 165 "htmlattrs.gperf"
++#line 168 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str137, ATTR_STANDBY},
+-#line 118 "htmlattrs.gperf"
++#line 121 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str138, ATTR_WIDTH},
+ #line 19 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str139, ATTR_BEHAVIOR},
+-#line 83 "htmlattrs.gperf"
++#line 85 "htmlattrs.gperf"
+     {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str140, ATTR_PLAYCOUNT},
+-#line 151 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str141, ATTR_ONMOUSEDOWN},
+-#line 114 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str142, ATTR_VERSION},
++#line 46 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str141, ATTR_ENCRYPTION},
++#line 154 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str142, ATTR_ONMOUSEDOWN},
++#line 117 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str143, ATTR_VERSION},
+ #line 17 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str143, ATTR_AUTOPLAY},
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str144, ATTR_AUTOPLAY},
+ #line 15 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str144, ATTR_ALINK},
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str145, ATTR_ALINK},
+ #line 43 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str145, ATTR_DIRECTION},
+-#line 125 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str146, ATTR_BACKGROUND},
+-#line 61 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str147, ATTR_LINK},
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str146, ATTR_DIRECTION},
++#line 128 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str147, ATTR_BACKGROUND},
++#line 57 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str148, ATTR_HTTP_EQUIV},
++#line 63 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str149, ATTR_LINK},
+ #line 37 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str148, ATTR_CONTENTEDITABLE},
+-#line 55 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str149, ATTR_HTTP_EQUIV},
+-#line 112 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str150, ATTR_VALIGN},
+-#line 113 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str151, ATTR_VALUETYPE},
+-#line 166 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str152, ATTR_SUMMARY},
+-#line 65 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str153, ATTR_MARGINHEIGHT},
+-#line 111 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str154, ATTR_UNKNOWN},
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str150, ATTR_CONTENTEDITABLE},
++#line 115 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str151, ATTR_VALIGN},
+ #line 116 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str155, ATTR_VLINK},
+-#line 147 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str156, ATTR_ONKEYDOWN},
+-#line 66 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str157, ATTR_MARGINWIDTH},
+-#line 115 "htmlattrs.gperf"
+-    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str158, ATTR_VISIBILITY}
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str152, ATTR_VALUETYPE},
++#line 169 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str153, ATTR_SUMMARY},
++#line 67 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str154, ATTR_MARGINHEIGHT},
++#line 114 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str155, ATTR_UNKNOWN},
++#line 119 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str156, ATTR_VLINK},
++#line 150 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str157, ATTR_ONKEYDOWN},
++#line 68 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str158, ATTR_MARGINWIDTH},
++#line 47 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str159, ATTR_ENCRYPTION_KEY},
++#line 102 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str160, ATTR_SIGNING_KEY},
++#line 118 "htmlattrs.gperf"
++    {(int)(long)&((struct spool_attr_t *)0)->spool_attr_str161, ATTR_VISIBILITY}
+   };
+ 
+ static const short lookup[] =
+@@ -800,10 +812,10 @@
+      34,  35,  36,  -1,  37,  -1,  38,  39,  40,  -1,
+      41,  42,  43,  -1,  44,  -1,  45,  46,  -1,  47,
+      48,  -1,  -1,  -1,  -1,  49,  -1,  50,  -1,  -1,
+-     -1,  51,  52,  -1,  53,  -1,  -1,  54,  -1,  -1,
+-     -1,  55,  56,  57,  -1,  58,  -1,  59,  60,  61,
+-     -1,  62,  63,  -1,  64,  -1,  -1,  -1,  -1,  65,
+-     -1,  -1,  -1,  66,  67,  68,  69,  70,  -1,  71,
++     -1,  51,  52,  -1,  -1,  -1,  -1,  53,  -1,  54,
++     -1,  55,  56,  57,  58,  59,  -1,  60,  61,  62,
++     -1,  63,  64,  -1,  65,  -1,  -1,  -1,  -1,  66,
++     -1,  -1,  -1,  67,  68,  69,  70,  71,  -1,  -1,
+      72,  -1,  73,  -1,  74,  -1,  75,  -1,  -1,  -1,
+      76,  -1,  -1,  77,  78,  -1,  -1,  79,  80,  -1,
+      81,  82,  83,  84,  85,  86,  -1,  -1,  87,  88,
+@@ -821,29 +833,30 @@
+      -1,  -1,  -1,  -1, 132,  -1, 133, 134,  -1,  -1,
+      -1, 135,  -1, 136,  -1,  -1,  -1, 137,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1, 138,  -1,  -1, 139, 140,
+-     -1, 141, 142, 143,  -1, 144,  -1,  -1,  -1, 145,
+-    146,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+-     -1,  -1,  -1,  -1, 147, 148,  -1,  -1,  -1,  -1,
+-     -1,  -1,  -1,  -1,  -1, 149, 150,  -1,  -1,  -1,
+-     -1,  -1,  -1,  -1, 151,  -1,  -1,  -1,  -1,  -1,
+-     -1,  -1,  -1,  -1,  -1,  -1,  -1, 152,  -1,  -1,
++    141, 142, 143, 144,  -1, 145,  -1,  -1,  -1, 146,
++    147,  -1,  -1,  -1,  -1, 148,  -1,  -1,  -1,  -1,
++     -1,  -1,  -1,  -1, 149, 150,  -1,  -1,  -1,  -1,
++     -1,  -1,  -1,  -1,  -1,  -1, 151,  -1,  -1,  -1,
++     -1,  -1,  -1,  -1, 152,  -1,  -1,  -1,  -1,  -1,
++     -1,  -1,  -1,  -1,  -1,  -1,  -1, 153,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+-     -1,  -1, 153,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+-     -1,  -1,  -1,  -1,  -1,  -1,  -1, 154,  -1,  -1,
++     -1,  -1, 154,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
++     -1,  -1,  -1,  -1,  -1,  -1,  -1, 155,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+-    155,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
++    156,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+-     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 156,
+-     -1,  -1,  -1,  -1,  -1,  -1, 157,  -1,  -1,  -1,
++     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 157,
++     -1,  -1,  -1,  -1,  -1,  -1, 158,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
++     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1, 159,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+@@ -853,8 +866,7 @@
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+      -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+-     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,
+-     -1,  -1,  -1,  -1,  -1, 158
++     -1, 160,  -1,  -1,  -1, 161
+   };
+ 
+ #ifdef __GNUC__
+@@ -885,19 +897,19 @@
+     }
+   return 0;
+ }
+-#line 170 "htmlattrs.gperf"
++#line 173 "htmlattrs.gperf"
+ 
+ 
+ 
+ static const unsigned short attrList[] = {
+     65535,
+-    149,
++    160,
+     17,
+     131,
+     115,
++    145,
++    118,
+     144,
+-    118,
+-    143,
+     110,
+     139,
+     50,
+@@ -908,7 +920,7 @@
+     108,
+     47,
+     106,
+-    59,
++    60,
+     52,
+     105,
+     34,
+@@ -917,39 +929,41 @@
+     2,
+     56,
+     36,
+-    148,
++    150,
+     57,
+     9,
+     24,
+     20,
+     77,
+-    145,
++    146,
+     114,
+     83,
++    141,
++    160,
+     10,
+     26,
+     41,
+-    69,
++    70,
+     94,
+     133,
+     93,
+     35,
+-    61,
+-    149,
+-    68,
++    62,
++    160,
++    69,
+     74,
+     103,
+     16,
+     123,
+-    147,
++    149,
+     4,
+-    63,
++    64,
+     19,
+-    153,
+-    157,
++    154,
++    158,
+     132,
+     76,
+-    62,
++    63,
+     130,
+     75,
+     96,
+@@ -958,9 +972,9 @@
+     112,
+     39,
+     12,
+-    60,
+-    70,
+-    58,
++    61,
++    71,
++    59,
+     97,
+     107,
+     140,
+@@ -971,7 +985,7 @@
+     124,
+     7,
+     80,
+-    64,
++    65,
+     113,
+     81,
+     11,
+@@ -980,8 +994,9 @@
+     104,
+     25,
+     49,
++    160,
+     85,
+-    53,
++    58,
+     22,
+     92,
+     136,
+@@ -991,21 +1006,21 @@
+     117,
+     37,
+     13,
+-    154,
+-    150,
++    155,
+     151,
+-    142,
+-    158,
+-    155,
++    152,
++    143,
++    161,
++    156,
+     89,
+     138,
+-    67,
+-    149,
++    68,
++    160,
+     21,
+     98,
+     32,
+     125,
+-    146,
++    147,
+     78,
+     29,
+     73,
+@@ -1019,7 +1034,7 @@
+     28,
+     43,
+     48,
+-    66,
++    67,
+     88,
+     82,
+     45,
+@@ -1027,26 +1042,26 @@
+     102,
+     121,
+     31,
+-    156,
++    157,
+     126,
+     134,
+     23,
+-    141,
++    142,
+     135,
+     72,
+     122,
+-    65,
++    66,
+     14,
+     18,
+     15,
+     100,
+     84,
+-    54,
++    53,
+     30,
+     55,
+     0,
+     137,
+-    152,
++    153,
+     86,
+     51,
+     111,
+Index: misc/htmlattrs.h
+===================================================================
+--- misc/htmlattrs.h	(revision 1048061)
++++ misc/htmlattrs.h	(working copy)
+@@ -1,7 +1,7 @@
+ /* This file is automatically generated from
+ htmlattrs.in by makeattrs, do not edit */
+ /* Copyright 1999 Lars Knoll */
+-#if 0
++
+ #ifndef HTML_ATTRS_H
+ #define HTML_ATTRS_H
+ 
+@@ -44,133 +44,135 @@
+ #define ATTR_DIRECTION 33
+ #define ATTR_DISABLED 34
+ #define ATTR_ENCTYPE 35
+-#define ATTR_END 36
+-#define ATTR_FACE 37
+-#define ATTR_FRAME 38
+-#define ATTR_FRAMEBORDER 39
+-#define ATTR_HEIGHT 40
+-#define ATTR_HIDDEN 41
+-#define ATTR_HREFLANG 42
+-#define ATTR_HSPACE 43
+-#define ATTR_HTML 44
+-#define ATTR_HTTP_EQUIV 45
+-#define ATTR_ISMAP 46
+-#define ATTR_LANG 47
+-#define ATTR_LANGUAGE 48
+-#define ATTR_LEFT 49
+-#define ATTR_LEFTMARGIN 50
+-#define ATTR_LINK 51
+-#define ATTR_LOOP 52
+-#define ATTR_LOOPEND 53
+-#define ATTR_LOOPSTART 54
+-#define ATTR_MARGINHEIGHT 55
+-#define ATTR_MARGINWIDTH 56
+-#define ATTR_MAXLENGTH 57
+-#define ATTR_MEDIA 58
+-#define ATTR_METHOD 59
+-#define ATTR_MULTIPLE 60
+-#define ATTR_NOHREF 61
+-#define ATTR_NORESIZE 62
+-#define ATTR_NOSAVE 63
+-#define ATTR_NOSHADE 64
+-#define ATTR_NOWRAP 65
+-#define ATTR_ONABORT 66
+-#define ATTR_ONERROR 67
+-#define ATTR_ONRESIZE 68
+-#define ATTR_OVERSRC 69
+-#define ATTR_PAGEX 70
+-#define ATTR_PAGEY 71
+-#define ATTR_PLAIN 72
+-#define ATTR_PLAYCOUNT 73
+-#define ATTR_PLUGINPAGE 74
+-#define ATTR_PLUGINSPAGE 75
+-#define ATTR_PLUGINURL 76
+-#define ATTR_POSTER 77
+-#define ATTR_READONLY 78
+-#define ATTR_REL 79
+-#define ATTR_REV 80
+-#define ATTR_ROWS 81
+-#define ATTR_ROWSPAN 82
+-#define ATTR_RULES 83
+-#define ATTR_SCOPE 84
+-#define ATTR_SCROLLAMOUNT 85
+-#define ATTR_SCROLLDELAY 86
+-#define ATTR_SCROLLING 87
+-#define ATTR_SELECTED 88
+-#define ATTR_SHAPE 89
+-#define ATTR_SIZE 90
+-#define ATTR_SPAN 91
+-#define ATTR_START 92
+-#define ATTR_STYLE 93
+-#define ATTR_TABINDEX 94
+-#define ATTR_TARGET 95
+-#define ATTR_TEXT 96
+-#define ATTR_TOP 97
+-#define ATTR_TOPMARGIN 98
+-#define ATTR_TRUESPEED 99
+-#define ATTR_TYPE 100
+-#define ATTR_UNKNOWN 101
+-#define ATTR_VALIGN 102
+-#define ATTR_VALUETYPE 103
+-#define ATTR_VERSION 104
+-#define ATTR_VISIBILITY 105
+-#define ATTR_VLINK 106
+-#define ATTR_VSPACE 107
+-#define ATTR_WIDTH 108
+-#define ATTR_WRAP 109
+-#define ATTR_Z_INDEX 110
+-#define ATTR_ABBR 111
+-#define ATTR_ACTION 112
+-#define ATTR_ALT 113
+-#define ATTR_ARCHIVE 114
+-#define ATTR_BACKGROUND 115
+-#define ATTR_CITE 116
+-#define ATTR_CLASS 117
+-#define ATTR_CLASSID 118
+-#define ATTR_CODE 119
+-#define ATTR_CODEBASE 120
+-#define ATTR_CONTENT 121
+-#define ATTR_DATA 122
+-#define ATTR_DATETIME 123
+-#define ATTR_FOR 124
+-#define ATTR_HEADERS 125
+-#define ATTR_HREF 126
+-#define ATTR_ID 127
+-#define ATTR_LABEL 128
+-#define ATTR_LONGDESC 129
+-#define ATTR_NAME 130
+-#define ATTR_OBJECT 131
+-#define ATTR_ONBLUR 132
+-#define ATTR_ONCHANGE 133
+-#define ATTR_ONCLICK 134
+-#define ATTR_ONDBLCLICK 135
+-#define ATTR_ONFOCUS 136
+-#define ATTR_ONKEYDOWN 137
+-#define ATTR_ONKEYPRESS 138
+-#define ATTR_ONKEYUP 139
+-#define ATTR_ONLOAD 140
+-#define ATTR_ONMOUSEDOWN 141
+-#define ATTR_ONMOUSEMOVE 142
+-#define ATTR_ONMOUSEOUT 143
+-#define ATTR_ONMOUSEOVER 144
+-#define ATTR_ONMOUSEUP 145
+-#define ATTR_ONRESET 146
+-#define ATTR_ONSELECT 147
+-#define ATTR_ONSCROLL 148
+-#define ATTR_ONSUBMIT 149
+-#define ATTR_ONUNLOAD 150
+-#define ATTR_PROFILE 151
+-#define ATTR_PROMPT 152
+-#define ATTR_SCHEME 153
+-#define ATTR_SRC 154
+-#define ATTR_STANDBY 155
+-#define ATTR_SUMMARY 156
+-#define ATTR_TITLE 157
+-#define ATTR_USEMAP 158
+-#define ATTR_VALUE 159
+-#define ATTR_LAST_ATTR 159
+-#define ATTR_LAST_CI_ATTR 110
++#define ATTR_ENCRYPTION 36
++#define ATTR_ENCRYPTION_KEY 37
++#define ATTR_END 38
++#define ATTR_FACE 39
++#define ATTR_FRAME 40
++#define ATTR_FRAMEBORDER 41
++#define ATTR_HEIGHT 42
++#define ATTR_HIDDEN 43
++#define ATTR_HREFLANG 44
++#define ATTR_HSPACE 45
++#define ATTR_HTML 46
++#define ATTR_HTTP_EQUIV 47
++#define ATTR_ISMAP 48
++#define ATTR_LANG 49
++#define ATTR_LANGUAGE 50
++#define ATTR_LEFT 51
++#define ATTR_LEFTMARGIN 52
++#define ATTR_LINK 53
++#define ATTR_LOOP 54
++#define ATTR_LOOPEND 55
++#define ATTR_LOOPSTART 56
++#define ATTR_MARGINHEIGHT 57
++#define ATTR_MARGINWIDTH 58
++#define ATTR_MAXLENGTH 59
++#define ATTR_MEDIA 60
++#define ATTR_METHOD 61
++#define ATTR_MULTIPLE 62
++#define ATTR_NOHREF 63
++#define ATTR_NORESIZE 64
++#define ATTR_NOSAVE 65
++#define ATTR_NOSHADE 66
++#define ATTR_NOWRAP 67
++#define ATTR_ONABORT 68
++#define ATTR_ONERROR 69
++#define ATTR_ONRESIZE 70
++#define ATTR_OVERSRC 71
++#define ATTR_PAGEX 72
++#define ATTR_PAGEY 73
++#define ATTR_PLAIN 74
++#define ATTR_PLAYCOUNT 75
++#define ATTR_PLUGINPAGE 76
++#define ATTR_PLUGINSPAGE 77
++#define ATTR_PLUGINURL 78
++#define ATTR_POSTER 79
++#define ATTR_READONLY 80
++#define ATTR_REL 81
++#define ATTR_REV 82
++#define ATTR_ROWS 83
++#define ATTR_ROWSPAN 84
++#define ATTR_RULES 85
++#define ATTR_SCOPE 86
++#define ATTR_SCROLLAMOUNT 87
++#define ATTR_SCROLLDELAY 88
++#define ATTR_SCROLLING 89
++#define ATTR_SELECTED 90
++#define ATTR_SHAPE 91
++#define ATTR_SIGNING_KEY 92
++#define ATTR_SIZE 93
++#define ATTR_SPAN 94
++#define ATTR_START 95
++#define ATTR_STYLE 96
++#define ATTR_TABINDEX 97
++#define ATTR_TARGET 98
++#define ATTR_TEXT 99
++#define ATTR_TOP 100
++#define ATTR_TOPMARGIN 101
++#define ATTR_TRUESPEED 102
++#define ATTR_TYPE 103
++#define ATTR_UNKNOWN 104
++#define ATTR_VALIGN 105
++#define ATTR_VALUETYPE 106
++#define ATTR_VERSION 107
++#define ATTR_VISIBILITY 108
++#define ATTR_VLINK 109
++#define ATTR_VSPACE 110
++#define ATTR_WIDTH 111
++#define ATTR_WRAP 112
++#define ATTR_Z_INDEX 113
++#define ATTR_ABBR 114
++#define ATTR_ACTION 115
++#define ATTR_ALT 116
++#define ATTR_ARCHIVE 117
++#define ATTR_BACKGROUND 118
++#define ATTR_CITE 119
++#define ATTR_CLASS 120
++#define ATTR_CLASSID 121
++#define ATTR_CODE 122
++#define ATTR_CODEBASE 123
++#define ATTR_CONTENT 124
++#define ATTR_DATA 125
++#define ATTR_DATETIME 126
++#define ATTR_FOR 127
++#define ATTR_HEADERS 128
++#define ATTR_HREF 129
++#define ATTR_ID 130
++#define ATTR_LABEL 131
++#define ATTR_LONGDESC 132
++#define ATTR_NAME 133
++#define ATTR_OBJECT 134
++#define ATTR_ONBLUR 135
++#define ATTR_ONCHANGE 136
++#define ATTR_ONCLICK 137
++#define ATTR_ONDBLCLICK 138
++#define ATTR_ONFOCUS 139
++#define ATTR_ONKEYDOWN 140
++#define ATTR_ONKEYPRESS 141
++#define ATTR_ONKEYUP 142
++#define ATTR_ONLOAD 143
++#define ATTR_ONMOUSEDOWN 144
++#define ATTR_ONMOUSEMOVE 145
++#define ATTR_ONMOUSEOUT 146
++#define ATTR_ONMOUSEOVER 147
++#define ATTR_ONMOUSEUP 148
++#define ATTR_ONRESET 149
++#define ATTR_ONSELECT 150
++#define ATTR_ONSCROLL 151
++#define ATTR_ONSUBMIT 152
++#define ATTR_ONUNLOAD 153
++#define ATTR_PROFILE 154
++#define ATTR_PROMPT 155
++#define ATTR_SCHEME 156
++#define ATTR_SRC 157
++#define ATTR_STANDBY 158
++#define ATTR_SUMMARY 159
++#define ATTR_TITLE 160
++#define ATTR_USEMAP 161
++#define ATTR_VALUE 162
++#define ATTR_LAST_ATTR 162
++#define ATTR_LAST_CI_ATTR 113
+ const char* getAttrName(unsigned short id) KDE_NO_EXPORT;
+ 
+ #endif
+-#endif
 Index: misc/htmlnames.cpp
 ===================================================================
 --- misc/htmlnames.cpp	(revision 1048061)
 +++ misc/htmlnames.cpp	(working copy)
-@@ -580,6 +580,11 @@
-     s_idTable->addStaticMapping(localNamePart(ATTR_XLINK_ARCROLE), "arcrole");
-     s_idTable->addStaticMapping(localNamePart(ATTR_XLINK_ROLE), "role");
-     s_idTable->addStaticMapping(localNamePart(ATTR_XLINK_SHOW), "show");
-+    #ifdef KLEO_SUPPORT
+@@ -168,6 +168,8 @@
+     s_idTable->addStaticMapping(localNamePart(ATTR_DIRECTION), "direction");
+     s_idTable->addStaticMapping(localNamePart(ATTR_DISABLED), "disabled");
+     s_idTable->addStaticMapping(localNamePart(ATTR_ENCTYPE), "enctype");
 +    s_idTable->addStaticMapping(localNamePart(ATTR_ENCRYPTION), "encryption");
 +    s_idTable->addStaticMapping(localNamePart(ATTR_ENCRYPTION_KEY), "encryption-key");
+     s_idTable->addStaticMapping(localNamePart(ATTR_END), "end");
+     s_idTable->addStaticMapping(localNamePart(ATTR_FACE), "face");
+     s_idTable->addStaticMapping(localNamePart(ATTR_FRAMEBORDER), "frameborder");
+@@ -219,6 +221,7 @@
+     s_idTable->addStaticMapping(localNamePart(ATTR_SCROLLING), "scrolling");
+     s_idTable->addStaticMapping(localNamePart(ATTR_SELECTED), "selected");
+     s_idTable->addStaticMapping(localNamePart(ATTR_SHAPE), "shape");
 +    s_idTable->addStaticMapping(localNamePart(ATTR_SIGNING_KEY), "signing-key");
-+    #endif
-     return s_idTable;
- }
- 
+     s_idTable->addStaticMapping(localNamePart(ATTR_SIZE), "size");
+     s_idTable->addStaticMapping(localNamePart(ATTR_START), "start");
+     s_idTable->addStaticMapping(localNamePart(ATTR_TABINDEX), "tabindex");
 Index: tests/CMakeLists.txt
 ===================================================================
 --- tests/CMakeLists.txt	(revision 1048061)
@@ -253,7 +2311,7 @@ Index: html/html_formimpl.cpp
  {
      m_type = TEXT;
 +    #ifdef KLEO_SUPPORT
-+    m_encryptionType = NONE;
++    m_encryptionType = NO_ENCRYPTION;
 +    m_encryptedValueSynced = false;
 +    #endif
      m_maxLen = -1;
@@ -264,7 +2322,7 @@ Index: html/html_formimpl.cpp
          break;
      default:
 +        #ifdef KLEO_SUPPORT
-+        if (m_encryptionType != NONE) {
++        if (m_encryptionType != NO_ENCRYPTION) {
 +            break;
 +        }
 +        #endif
@@ -283,9 +2341,9 @@ Index: html/html_formimpl.cpp
 +        }
 +        break;
 +    case ATTR_ENCRYPTION_KEY:
-+        m_PGPEncryptionKeyFingerprint = DOMString(/*attr->value()*/);
++        m_PGPEncryptionKeyFingerprint = attr->value();
 +    case ATTR_SIGNING_KEY:
-+        m_PGPSigningKeyFingerprint = DOMString(attr->value());
++        m_PGPSigningKeyFingerprint = attr->value();
 +        break;
 +#endif
      case ATTR_TYPE:
@@ -293,19 +2351,27 @@ Index: html/html_formimpl.cpp
          break;
      case ATTR_VALUE:
 +#ifdef KLEO_SUPPORT
-+        if (m_encryptionType != NONE) {
++        if (m_encryptionType != NO_ENCRYPTION) {
 +            break;
 +        }
 +#endif
          if (m_value.isNull()) {// We only need to setChanged if the form is looking
              setChanged();      // at the default value right now.
              if (m_type == TEXT && m_render)
-@@ -1512,7 +1557,13 @@
+@@ -1503,6 +1548,7 @@
+             document()->createHTMLEventListener(attr->value().string(), "onchange", this));
+         break;
+     default:
++        kDebug() << "?? attr->localName()" << attr->localName();
+         HTMLGenericFormElementImpl::parseAttribute(attr);
+     }
+ }
+@@ -1512,7 +1558,13 @@
      const HTMLInputElementImpl *e =
          static_cast<const HTMLInputElementImpl*>(source);
  
 +#ifdef KLEO_SUPPORT
-+    if (m_encryptionType == NONE) {
++    if (m_encryptionType == NO_ENCRYPTION) {
 +        m_value = e->m_value;
 +    }
 +#else
@@ -314,12 +2380,12 @@ Index: html/html_formimpl.cpp
      m_checked = e->m_checked;
      // ### copy more?
  
-@@ -1856,6 +1907,16 @@
+@@ -1856,6 +1908,16 @@
      if (val.isNull() && m_type != FILE)
          val = getAttribute(ATTR_VALUE);
  
 +    #ifdef KLEO_SUPPORT
-+    if (!m_encryptedValueSynced) {
++    if (m_encryptionType != NO_ENCRYPTION && !m_encryptedValueSynced) {
 +        // Next lines are a HUGE HACK equivalent to calling to handleEncrytion(); but casting away constness 
 +        void (HTMLInputElementImpl::*f)() = reinterpret_cast<void (HTMLInputElementImpl::*)()>(&HTMLInputElementImpl::handleEncryption);
 +        DOM::HTMLInputElementImpl *this_unconst = const_cast<DOM::HTMLInputElementImpl*>(this);
@@ -331,35 +2397,38 @@ Index: html/html_formimpl.cpp
      return val;
  }
  
-@@ -1863,6 +1924,8 @@
+@@ -1863,8 +1925,15 @@
  void HTMLInputElementImpl::setValue(DOMString val)
  {
      if (m_type == FILE) return;
 +    
-+    if(m_type == TEXT)
++#ifdef KLEO_SUPPORT
++    if (m_type != TEXT || m_encryptionType == NO_ENCRYPTION) {
++        m_value = val;
++    }
++#else
++    m_value = val;
++#endif
  
-     m_value = val;
+-    m_value = val;
      // ### set attribute for other types, too. no need for m_value
-@@ -1874,6 +1937,76 @@
+     // ### in those cases.
+     if (m_type == RADIO || m_type == CHECKBOX)
+@@ -1874,6 +1943,73 @@
      setChanged();
  }
  
 +#ifdef KLEO_SUPPORT
 +
-+using namespace Kleo;
-+using namespace GpgME;
-+
 +void HTMLInputElementImpl::setPlainTextValue(DOMString _value)
 +{
 +    // When calling to this function you supposedly only do that because it's of
-+    // TEXT type
++    // TEXT type. AND it's only called by RenderLineEdit::slotTextChanged() so
++    // there's no need to call to m_render->updateFromElement();
 +    m_value = _value;
-+    if (m_render) {
-+        m_render->updateFromElement();
-+    }
 +    
 +    setChanged();
-+    if (m_encryptionType != NONE) {
++    if (m_encryptionType != NO_ENCRYPTION) {
 +        m_encryptedValueSynced = false;
 +    }
 +}
@@ -398,8 +2467,8 @@ Index: html/html_formimpl.cpp
 +void HTMLInputElementImpl::encryptOnly()
 +{    
 +    QByteArray plainText = m_value.string().toAscii();
-+    const CryptoBackend::Protocol * const  backend =
-+        CryptoBackendFactory::instance()->protocol( OpenPGP );
++    const Kleo::CryptoBackend::Protocol * const  backend =
++        Kleo::CryptoBackendFactory::instance()->protocol( GpgME::OpenPGP );
 +        
 +    QByteArray cipherText; // Here we will receive the cipher text
 +    std::vector<GpgME::Key> recipient(1, m_PGPEncryptionKey);
@@ -409,6 +2478,8 @@ Index: html/html_formimpl.cpp
 +    encryptJob->setOutputIsBase64Encoded(false);
 +    encryptJob->exec(recipient, plainText, true, cipherText);
 +    m_encryptedValue = cipherText.data();
++    
++    kDebug() << m_encryptedValue;
 +    m_encryptedValueSynced = true;
 +}
 +
@@ -446,7 +2517,7 @@ Index: html/html_formimpl.h
      };
 +    
 +    enum encryptionTypeEnum {
-+        NONE,
++        NO_ENCRYPTION,
 +        GPG
 +    };
  
@@ -458,18 +2529,21 @@ Index: html/html_formimpl.h
      void setValue(DOMString val);
 +    
 +    #ifdef KLEO_SUPPORT
-+    bool isEncrypted() const { return m_encryptionType != NONE; }
++    bool isEncrypted() const { return m_encryptionType != NO_ENCRYPTION; }
 +    encryptionTypeEnum encryptionType() const { return KDE_CAST_BF_ENUM(encryptionTypeEnum, m_encryptionType); }
 +    #endif
  
      DOMString valueWithDefault() const;
  
-@@ -334,6 +349,20 @@
+@@ -334,6 +349,23 @@
  protected:
      void parseType(const DOMString& t);
  
 +#ifdef KLEO_SUPPORT
++    // Only called by only called by RenderLineEdit::slotTextChanged()
 +    void setPlainTextValue(DOMString _value);
++    
++    // Only called by only called by RenderLineEdit::updateFromElement()
 +    DOMString plainTextvalue() const;
 +    void encryptOnly();
 +    //void encryptAndSign();
@@ -485,7 +2559,7 @@ Index: html/html_formimpl.h
      DOMString m_value;
      int       xPos;
      short     m_maxLen;
-@@ -351,6 +380,10 @@
+@@ -351,6 +383,10 @@
      bool m_autocomplete : 1;
      bool m_inited : 1;
      bool m_unsubmittedFormChange : 1;
@@ -496,6 +2570,51 @@ Index: html/html_formimpl.h
  };
  
  // -------------------------------------------------------------------------
+Index: rendering/render_form.cpp
+===================================================================
+--- rendering/render_form.cpp	(revision 1048061)
++++ rendering/render_form.cpp	(working copy)
+@@ -1072,6 +1072,16 @@
+         widget()->setMaxLength( ml );
+     }
+ 
++    // don't use value() here!
++    #ifdef KLEO_SUPPORT
++    if (element()->plainTextvalue().string() != widget()->text()) {
++        m_blockElementUpdates = true;
++        int pos = widget()->cursorPosition();
++        widget()->setText(element()->plainTextvalue().string());
++        widget()->setCursorPosition(pos);
++        m_blockElementUpdates = false;
++    }
++    #else
+     if (element()->value().string() != widget()->text()) {
+         m_blockElementUpdates = true;
+         int pos = widget()->cursorPosition();
+@@ -1079,6 +1089,7 @@
+         widget()->setCursorPosition(pos);
+         m_blockElementUpdates = false;
+     }
++    #endif
+     widget()->setReadOnly(element()->readOnly());
+ 
+     RenderFormElement::updateFromElement();
+@@ -1089,7 +1100,15 @@
+     if (m_blockElementUpdates) return;
+ 
+     // don't use setValue here!
++    #ifdef KLEO_SUPPORT
++    if (element()->isEncrypted()) {
++        element()->setPlainTextValue(string);
++    } else {
++        element()->m_value = string;
++    }
++    #else
+     element()->m_value = string;
++    #endif
+     element()->m_unsubmittedFormChange = true;
+ }
+ 
 Index: CMakeLists.txt
 ===================================================================
 --- CMakeLists.txt	(revision 1048061)
