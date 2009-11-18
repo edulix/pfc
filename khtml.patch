@@ -2310,10 +2310,10 @@ Index: html/html_formimpl.cpp
      : HTMLGenericFormElementImpl(doc, f)
  {
      m_type = TEXT;
-+    #ifdef KLEO_SUPPORT
++#ifdef KLEO_SUPPORT
 +    m_encryptionType = NO_ENCRYPTION;
 +    m_encryptedValueSynced = false;
-+    #endif
++#endif
      m_maxLen = -1;
      m_size = 20;
      m_clicked = false;
@@ -2321,11 +2321,11 @@ Index: html/html_formimpl.cpp
          // Don't mess with those...
          break;
      default:
-+        #ifdef KLEO_SUPPORT
++#ifdef KLEO_SUPPORT
 +        if (m_encryptionType != NO_ENCRYPTION) {
 +            break;
 +        }
-+        #endif
++#endif
          setValue(state.endsWith('N') ? DOMString() : DOMString(state.left(state.length()-2)));
          m_unsubmittedFormChange = (state.right(1) == "M");
          break;
@@ -2380,24 +2380,23 @@ Index: html/html_formimpl.cpp
      m_checked = e->m_checked;
      // ### copy more?
  
-@@ -1856,6 +1908,16 @@
+@@ -1856,6 +1908,15 @@
      if (val.isNull() && m_type != FILE)
          val = getAttribute(ATTR_VALUE);
  
-+    #ifdef KLEO_SUPPORT
++#ifdef KLEO_SUPPORT
 +    if (m_encryptionType != NO_ENCRYPTION && !m_encryptedValueSynced) {
-+        // Next lines are a HUGE HACK equivalent to calling to handleEncrytion(); but casting away constness 
-+        void (HTMLInputElementImpl::*f)() = reinterpret_cast<void (HTMLInputElementImpl::*)()>(&HTMLInputElementImpl::handleEncryption);
++        // Next lines are a HUGE HACK equivalent to calling to handleEncrytion(); but casting away constness
 +        DOM::HTMLInputElementImpl *this_unconst = const_cast<DOM::HTMLInputElementImpl*>(this);
-+        (this_unconst->*f)();
++        this_unconst->handleEncryption();
 +    }
 +    val = m_encryptedValue;
-+    #endif
++#endif
 +    
      return val;
  }
  
-@@ -1863,8 +1925,15 @@
+@@ -1863,8 +1924,15 @@
  void HTMLInputElementImpl::setValue(DOMString val)
  {
      if (m_type == FILE) return;
@@ -2414,7 +2413,7 @@ Index: html/html_formimpl.cpp
      // ### set attribute for other types, too. no need for m_value
      // ### in those cases.
      if (m_type == RADIO || m_type == CHECKBOX)
-@@ -1874,6 +1943,73 @@
+@@ -1874,6 +1942,73 @@
      setChanged();
  }
  
@@ -2528,10 +2527,10 @@ Index: html/html_formimpl.h
      DOMString value() const;
      void setValue(DOMString val);
 +    
-+    #ifdef KLEO_SUPPORT
++#ifdef KLEO_SUPPORT
 +    bool isEncrypted() const { return m_encryptionType != NO_ENCRYPTION; }
 +    encryptionTypeEnum encryptionType() const { return KDE_CAST_BF_ENUM(encryptionTypeEnum, m_encryptionType); }
-+    #endif
++#endif
  
      DOMString valueWithDefault() const;
  
@@ -2563,10 +2562,10 @@ Index: html/html_formimpl.h
      bool m_autocomplete : 1;
      bool m_inited : 1;
      bool m_unsubmittedFormChange : 1;
-+    #ifdef KLEO_SUPPORT
++#ifdef KLEO_SUPPORT
 +    bool m_encryptedValueSynced : 1;
 +    KDE_BF_ENUM(encryptionTypeEnum) m_encryptionType : 1;
-+    #endif
++#endif
  };
  
  // -------------------------------------------------------------------------
@@ -2574,7 +2573,67 @@ Index: rendering/render_form.cpp
 ===================================================================
 --- rendering/render_form.cpp	(revision 1048061)
 +++ rendering/render_form.cpp	(working copy)
-@@ -1072,6 +1072,16 @@
+@@ -906,12 +906,41 @@
+ 
+ void LineEditWidget::paintEvent( QPaintEvent *pe )
+ {
++#ifdef KLEO_SUPPORT
++    // Secure the visualization of the widget for the user if the widget is
++    // "secure" i.e. sends encrypted data
++    if (m_input->isEncrypted()) {
++        QPainter p(this);
++            
++        // Change background color to yellow
++        QColor color(245, 246, 190);
++        QPalette pal = palette();
++        pal.setBrush(QPalette::Base, color);
++        setPalette(pal);
++        
++        if (!hasFrame()) {
++            p.fillRect(pe->rect(), palette().brush(QPalette::Base));
++        }
++        KLineEdit::paintEvent( pe );
++        
++        // Show padlock
++        QPixmap pix = SmallIcon("document-encrypt");
++        p.drawPixmap( pix.width() / 3, sizeHint().height() / 2 - pix.height() / 2 - 2, pix );
++        p.end();
++    } else if (!hasFrame()) {
++        QPainter p(this);
++        p.fillRect(pe->rect(), palette().brush(QPalette::Base));
++        p.end();
++        KLineEdit::paintEvent( pe );
++    }
++#else
+     if (!hasFrame()) {
+         QPainter p(this);
+         p.fillRect(pe->rect(), palette().brush(QPalette::Base));
+         p.end();
+     }
+     KLineEdit::paintEvent( pe );
++#endif
+ }
+ 
+ bool LineEditWidget::event( QEvent *e )
+@@ -955,6 +984,17 @@
+ {
+     LineEditWidget *edit = new LineEditWidget(element, view(), view()->widget());
+     connect(edit,SIGNAL(returnPressed()), this, SLOT(slotReturnPressed()));
++
++#ifdef KLEO_SUPPORT
++    if (element->isEncrypted()) {
++        QRect r = edit->geometry();
++        QPixmap pix = SmallIcon("security-high");
++        int left, right, top, bottom;
++        edit->getTextMargins(&left, &top, &right, &bottom);
++        left += pix.width() + 2;
++        edit->setTextMargins(left, top, right, bottom); 
++    }
++#endif
+     connect(edit,SIGNAL(textChanged(const QString &)),this,SLOT(slotTextChanged(const QString &)));
+     connect(edit->completionBox(),SIGNAL(currentTextChanged(const QString &)),this,SLOT(slotCompletionBoxActivated(const QString &)));
+ 
+@@ -1072,6 +1112,16 @@
          widget()->setMaxLength( ml );
      }
  
@@ -2591,7 +2650,7 @@ Index: rendering/render_form.cpp
      if (element()->value().string() != widget()->text()) {
          m_blockElementUpdates = true;
          int pos = widget()->cursorPosition();
-@@ -1079,6 +1089,7 @@
+@@ -1079,6 +1129,7 @@
          widget()->setCursorPosition(pos);
          m_blockElementUpdates = false;
      }
@@ -2599,7 +2658,7 @@ Index: rendering/render_form.cpp
      widget()->setReadOnly(element()->readOnly());
  
      RenderFormElement::updateFromElement();
-@@ -1089,7 +1100,15 @@
+@@ -1089,7 +1140,15 @@
      if (m_blockElementUpdates) return;
  
      // don't use setValue here!
