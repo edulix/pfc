@@ -2329,7 +2329,7 @@ Index: html/html_formimpl.cpp
          setValue(state.endsWith('N') ? DOMString() : DOMString(state.left(state.length()-2)));
          m_unsubmittedFormChange = (state.right(1) == "M");
          break;
-@@ -1441,10 +1468,28 @@
+@@ -1441,10 +1468,29 @@
      case ATTR_AUTOCOMPLETE:
          m_autocomplete = strcasecmp( attr->value(), "off" );
          break;
@@ -2337,11 +2337,12 @@ Index: html/html_formimpl.cpp
 +    case ATTR_ENCRYPTION:
 +        if (strcasecmp(attr->value(), "gpg") == 0) {
 +            m_encryptionType = GPG;
-+            m_value = "";
++            m_value = QString();
 +        }
 +        break;
 +    case ATTR_ENCRYPTION_KEY:
 +        m_PGPEncryptionKeyFingerprint = attr->value();
++        break;
 +    case ATTR_SIGNING_KEY:
 +        m_PGPSigningKeyFingerprint = attr->value();
 +        break;
@@ -2358,7 +2359,7 @@ Index: html/html_formimpl.cpp
          if (m_value.isNull()) {// We only need to setChanged if the form is looking
              setChanged();      // at the default value right now.
              if (m_type == TEXT && m_render)
-@@ -1503,6 +1548,7 @@
+@@ -1503,6 +1549,7 @@
              document()->createHTMLEventListener(attr->value().string(), "onchange", this));
          break;
      default:
@@ -2366,7 +2367,7 @@ Index: html/html_formimpl.cpp
          HTMLGenericFormElementImpl::parseAttribute(attr);
      }
  }
-@@ -1512,7 +1558,13 @@
+@@ -1512,7 +1559,13 @@
      const HTMLInputElementImpl *e =
          static_cast<const HTMLInputElementImpl*>(source);
  
@@ -2380,31 +2381,34 @@ Index: html/html_formimpl.cpp
      m_checked = e->m_checked;
      // ### copy more?
  
-@@ -1856,6 +1908,15 @@
+@@ -1856,6 +1909,17 @@
      if (val.isNull() && m_type != FILE)
          val = getAttribute(ATTR_VALUE);
  
 +#ifdef KLEO_SUPPORT
-+    if (m_encryptionType != NO_ENCRYPTION && !m_encryptedValueSynced) {
-+        // Next lines are a HUGE HACK equivalent to calling to handleEncrytion(); but casting away constness
-+        DOM::HTMLInputElementImpl *this_unconst = const_cast<DOM::HTMLInputElementImpl*>(this);
-+        this_unconst->handleEncryption();
++    if (m_encryptionType != NO_ENCRYPTION) {
++        if (!m_encryptedValueSynced) {
++            // Next lines are a HUGE HACK equivalent to calling to handleEncrytion(); but casting away constness
++            DOM::HTMLInputElementImpl *this_unconst = const_cast<DOM::HTMLInputElementImpl*>(this);
++            this_unconst->handleEncryption();
++        }
++        val = m_encryptedValue;
 +    }
-+    val = m_encryptedValue;
 +#endif
 +    
      return val;
  }
  
-@@ -1863,8 +1924,15 @@
+@@ -1863,17 +1927,107 @@
  void HTMLInputElementImpl::setValue(DOMString val)
  {
      if (m_type == FILE) return;
 +    
 +#ifdef KLEO_SUPPORT
-+    if (m_type != TEXT || m_encryptionType == NO_ENCRYPTION) {
-+        m_value = val;
++    if (m_encryptionType != NO_ENCRYPTION) {
++        return;        
 +    }
++    m_value = val;
 +#else
 +    m_value = val;
 +#endif
@@ -2413,7 +2417,10 @@ Index: html/html_formimpl.cpp
      // ### set attribute for other types, too. no need for m_value
      // ### in those cases.
      if (m_type == RADIO || m_type == CHECKBOX)
-@@ -1874,6 +1942,73 @@
+ 	setAttribute(ATTR_VALUE, m_value);
+     if (m_type == TEXT && m_render)
+         m_render->updateFromElement();
++    
      setChanged();
  }
  
@@ -2434,7 +2441,11 @@ Index: html/html_formimpl.cpp
 +
 +DOMString HTMLInputElementImpl::plainTextvalue() const
 +{
-+    return m_value;
++    if (m_encryptionType == NO_ENCRYPTION) {
++        return value();
++    } else {
++        return m_value;
++    }
 +}
 +
 +GpgME::Key obtainKeyFromFingerprint(DOMString fingerprint)
@@ -2447,6 +2458,16 @@ Index: html/html_formimpl.cpp
 +    Q_ASSERT_X(!keys.empty(), "form encryption", "key not found");
 +    
 +    return keys.front();
++}
++
++GpgME::Key HTMLInputElementImpl::encryptionKey()
++{
++    if (!m_PGPEncryptionKeyFingerprint.isEmpty()) {
++        if (m_PGPEncryptionKey.isNull()) {
++            m_PGPEncryptionKey = obtainKeyFromFingerprint(m_PGPEncryptionKeyFingerprint);
++        }
++    }
++    return m_PGPEncryptionKey;
 +}
 +
 +void HTMLInputElementImpl::handleEncryption()
@@ -2522,7 +2543,7 @@ Index: html/html_formimpl.h
  
      HTMLInputElementImpl(DocumentImpl *doc, HTMLFormElementImpl *f = 0);
      virtual ~HTMLInputElementImpl();
-@@ -292,6 +302,11 @@
+@@ -292,6 +302,12 @@
  
      DOMString value() const;
      void setValue(DOMString val);
@@ -2530,11 +2551,12 @@ Index: html/html_formimpl.h
 +#ifdef KLEO_SUPPORT
 +    bool isEncrypted() const { return m_encryptionType != NO_ENCRYPTION; }
 +    encryptionTypeEnum encryptionType() const { return KDE_CAST_BF_ENUM(encryptionTypeEnum, m_encryptionType); }
++    GpgME::Key encryptionKey();
 +#endif
  
      DOMString valueWithDefault() const;
  
-@@ -334,6 +349,23 @@
+@@ -334,6 +350,24 @@
  protected:
      void parseType(const DOMString& t);
  
@@ -2545,6 +2567,7 @@ Index: html/html_formimpl.h
 +    // Only called by only called by RenderLineEdit::updateFromElement()
 +    DOMString plainTextvalue() const;
 +    void encryptOnly();
++    //GpgME::Key signingKey();
 +    //void encryptAndSign();
 +    //void signOnly();
 +    void handleEncryption();
@@ -2558,7 +2581,7 @@ Index: html/html_formimpl.h
      DOMString m_value;
      int       xPos;
      short     m_maxLen;
-@@ -351,6 +383,10 @@
+@@ -351,6 +385,10 @@
      bool m_autocomplete : 1;
      bool m_inited : 1;
      bool m_unsubmittedFormChange : 1;
@@ -2569,11 +2592,600 @@ Index: html/html_formimpl.h
  };
  
  // -------------------------------------------------------------------------
+Index: rendering/render_form.h
+===================================================================
+--- rendering/render_form.h	(revision 1048061)
++++ rendering/render_form.h	(working copy)
+@@ -24,12 +24,14 @@
+ #ifndef RENDER_FORM_H
+ #define RENDER_FORM_H
+ 
++#include "../config-khtml.h"
+ #include "rendering/render_replaced.h"
+ #include "rendering/render_image.h"
+ #include "rendering/render_flow.h"
+ #include "rendering/render_style.h"
+ #include "khtmlview.h"
+ #include "html/html_formimpl.h"
++#include "ui_securitytooltip.h"
+ 
+ class QWidget;
+ 
+@@ -37,6 +39,8 @@
+ #include <kurlrequester.h>
+ #include <klineedit.h>
+ #include <QtGui/QCheckBox>
++#include <QtGui/QWidget>
++#include <QtGui/QFrame>
+ #include <QtGui/QRadioButton>
+ #include <QtGui/QPushButton>
+ #include <klistwidget.h>
+@@ -296,6 +300,7 @@
+ 
+ // -------------------------------------------------------------------------
+ 
++class SecurityWidget;
+ class LineEditWidget : public KLineEdit, public KHTMLWidget
+ {
+     Q_OBJECT
+@@ -312,6 +317,9 @@
+     virtual void mouseMoveEvent(QMouseEvent *e);
+     virtual void contextMenuEvent(QContextMenuEvent *e);
+ private Q_SLOTS:
++#ifdef KLEO_SUPPORT
++    void updateSecurityWidgetLocation();
++#endif
+     void clearHistoryActivated();
+     void slotCheckSpelling();
+     void slotSpellCheckDone( const QString &s );
+@@ -327,6 +335,9 @@
+     DOM::HTMLInputElementImpl* m_input;
+     KHTMLView* m_view;
+     KAction *m_spellAction;
++#ifdef KLEO_SUPPORT
++    SecurityWidget *m_securityWidget;
++#endif
+ };
+ 
+ // -------------------------------------------------------------------------
+@@ -560,6 +571,42 @@
+     ScrollBarWidget( Qt::Orientation orientation, QWidget * parent = 0 ): QScrollBar(orientation, parent) { m_kwp->setIsRedirected( true ); }
+ };
+ 
++
++#ifdef KLEO_SUPPORT
++/**
++ * Shows a security widget when clicking in the padlock icon in an encrypted input type text.
++ */
++class SecurityTooltip : public QFrame
++{
++    Q_OBJECT
++public:
++    SecurityTooltip(LineEditWidget *parentLineEdit, DOM::HTMLInputElementImpl *input);
++    void sizeAndPosition();
++    void updateUi();
++    
++public Q_SLOTS:
++    void popup();
++
++protected:
++
++    /**
++     * The preferred global coordinate at which the completion box's top left corner
++     * should be positioned.
++     */
++    virtual QPoint globalPositionHint() const;
++
++    /** 
++     * In focus out hide the tooltip.
++     */
++    void focusOutEvent(QFocusEvent *event);
++    
++private:
++    LineEditWidget *m_parent;
++    DOM::HTMLInputElementImpl *m_input;
++    Ui::SecurityToolTip ui;
++};
++#endif
++
+ } //namespace
+ 
+ #endif
+Index: rendering/securitytooltip.ui
+===================================================================
+--- rendering/securitytooltip.ui	(revision 0)
++++ rendering/securitytooltip.ui	(revision 0)
+@@ -0,0 +1,185 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<ui version="4.0">
++ <class>SecurityToolTip</class>
++ <widget class="QWidget" name="SecurityToolTip">
++  <property name="geometry">
++   <rect>
++    <x>0</x>
++    <y>0</y>
++    <width>365</width>
++    <height>206</height>
++   </rect>
++  </property>
++  <property name="windowTitle">
++   <string>Form</string>
++  </property>
++  <widget class="QPushButton" name="moreInfoButton">
++   <property name="geometry">
++    <rect>
++     <x>212</x>
++     <y>170</y>
++     <width>140</width>
++     <height>25</height>
++    </rect>
++   </property>
++   <property name="text">
++    <string>More information...</string>
++   </property>
++  </widget>
++  <widget class="QLabel" name="shieldIcon">
++   <property name="geometry">
++    <rect>
++     <x>8</x>
++     <y>10</y>
++     <width>50</width>
++     <height>50</height>
++    </rect>
++   </property>
++   <property name="lineWidth">
++    <number>0</number>
++   </property>
++  </widget>
++  <widget class="QLabel" name="messagesLabel">
++   <property name="geometry">
++    <rect>
++     <x>71</x>
++     <y>30</y>
++     <width>281</width>
++     <height>41</height>
++    </rect>
++   </property>
++   <property name="font">
++    <font>
++     <pointsize>10</pointsize>
++    </font>
++   </property>
++   <property name="text">
++    <string>Messages will be sent encrypted to:</string>
++   </property>
++   <property name="wordWrap">
++    <bool>true</bool>
++   </property>
++  </widget>
++  <widget class="QLabel" name="nameLabel">
++   <property name="geometry">
++    <rect>
++     <x>71</x>
++     <y>56</y>
++     <width>231</width>
++     <height>31</height>
++    </rect>
++   </property>
++   <property name="font">
++    <font>
++     <pointsize>11</pointsize>
++    </font>
++   </property>
++   <property name="styleSheet">
++    <string notr="true">color: rgb(0, 85, 0);</string>
++   </property>
++   <property name="text">
++    <string>Name Lastname Lastname</string>
++   </property>
++   <property name="wordWrap">
++    <bool>false</bool>
++   </property>
++  </widget>
++  <widget class="QLabel" name="emailLabel">
++   <property name="geometry">
++    <rect>
++     <x>72</x>
++     <y>69</y>
++     <width>231</width>
++     <height>41</height>
++    </rect>
++   </property>
++   <property name="font">
++    <font>
++     <pointsize>11</pointsize>
++    </font>
++   </property>
++   <property name="styleSheet">
++    <string notr="true">color: rgb(0, 0, 255);</string>
++   </property>
++   <property name="text">
++    <string>email@server.com</string>
++   </property>
++   <property name="wordWrap">
++    <bool>true</bool>
++   </property>
++  </widget>
++  <widget class="QLabel" name="detailsLabel">
++   <property name="geometry">
++    <rect>
++     <x>71</x>
++     <y>110</y>
++     <width>251</width>
++     <height>61</height>
++    </rect>
++   </property>
++   <property name="font">
++    <font>
++     <pointsize>10</pointsize>
++    </font>
++   </property>
++   <property name="text">
++    <string>Fingerprint: &lt;b&gt;XXXXXXX&lt;/b&gt;&lt;br/&gt;Owner trust: &lt;b style=&quot;color:#005500;&quot;&gt;Full&lt;/b&gt;&lt;br/&gt;State: &lt;b style=&quot;color:#005500;&quot;&gt;Full&lt;/b&gt;</string>
++   </property>
++   <property name="textFormat">
++    <enum>Qt::AutoText</enum>
++   </property>
++   <property name="wordWrap">
++    <bool>true</bool>
++   </property>
++  </widget>
++  <widget class="QLabel" name="receiverLabel">
++   <property name="geometry">
++    <rect>
++     <x>71</x>
++     <y>0</y>
++     <width>251</width>
++     <height>41</height>
++    </rect>
++   </property>
++   <property name="font">
++    <font>
++     <pointsize>10</pointsize>
++    </font>
++   </property>
++   <property name="text">
++    <string>&lt;b&gt;Receiver&lt;/b&gt;</string>
++   </property>
++   <property name="wordWrap">
++    <bool>true</bool>
++   </property>
++  </widget>
++  <widget class="QLabel" name="ownerTrustIcon">
++   <property name="geometry">
++    <rect>
++     <x>41</x>
++     <y>129</y>
++     <width>21</width>
++     <height>21</height>
++    </rect>
++   </property>
++   <property name="lineWidth">
++    <number>0</number>
++   </property>
++  </widget>
++  <widget class="QLabel" name="stateIcon">
++   <property name="geometry">
++    <rect>
++     <x>41</x>
++     <y>146</y>
++     <width>21</width>
++     <height>21</height>
++    </rect>
++   </property>
++   <property name="lineWidth">
++    <number>0</number>
++   </property>
++  </widget>
++ </widget>
++ <resources/>
++ <connections/>
++</ui>
 Index: rendering/render_form.cpp
 ===================================================================
 --- rendering/render_form.cpp	(revision 1048061)
 +++ rendering/render_form.cpp	(working copy)
-@@ -906,12 +906,41 @@
+@@ -54,7 +54,9 @@
+ #include <kbuildsycocaprogressdialog.h>
+ #include <kservicetypetrader.h>
+ #include <kservice.h>
++#include <kglobalsettings.h>
+ 
++#include <QTimer>
+ #include <QAbstractItemView>
+ #include <QAbstractTextDocumentLayout>
+ #include <QtGui/QStyle>
+@@ -635,8 +637,224 @@
+     }
+ };
+ 
++#ifdef KLEO_SUPPORT
++SecurityTooltip::SecurityTooltip(LineEditWidget *parentLineEdit, DOM::HTMLInputElementImpl *input)
++    : QFrame(parentLineEdit), m_parent(parentLineEdit), m_input(input)
++{
++    ui.setupUi(this);
++    setWindowFlags(Qt::Popup);
++    setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
++    hide();
++    
++    //TODO: Connect More Details.. button to show dialog when implemented
+ }
+ 
++void SecurityTooltip::popup()
++{
++    if (!isVisible()) {
++        kDebug();
++        sizeAndPosition();
++        updateUi();
++        show();
++        ui.moreInfoButton->setFocus(Qt::PopupFocusReason);
++    }
++}
++
++void SecurityTooltip::updateUi()
++{
++    int overallSecurity = 2; // o means low, 1 means medium, 2 means high
++    ui.messagesLabel->setText(i18n("Messages will be sent encrypted to:"));
++    GpgME::Key key = m_input->encryptionKey();
++    ui.nameLabel->setText(key.userID(0).id());
++    ui.emailLabel->setText(key.userID(0).email());
++    
++    QString shortKeyID = key.shortKeyID();
++    QPixmap ownerTrustIcon;
++    QString color1;
++    QString ownerTrustString;
++    int ownerTrust = key.ownerTrust();
++    if (key.hasSecret()) {
++        ownerTrust = GpgME::Key::Ultimate;
++    }
++    switch(ownerTrust) {
++        case GpgME::Key::Ultimate:
++            color1 = "#005500";
++            ownerTrustIcon = SmallIcon("security-high");
++            ownerTrustString = "Ultimate";
++            break;
++        case GpgME::Key::Full:
++            color1 = "#005500";
++            ownerTrustIcon= SmallIcon("security-high");
++            ownerTrustString = "Full";
++            break;
++        case GpgME::Key::Marginal:
++            overallSecurity = 1;
++            color1 = "#005500";
++            ownerTrustIcon = SmallIcon("security-medium");
++            ownerTrustString = "Marginal";
++            break;
++        case GpgME::Key::Never:
++            overallSecurity = 0;
++            color1 = "#005500";
++            ownerTrustIcon = SmallIcon("security-low");
++            ownerTrustString = "Never";
++            break;
++        case GpgME::Key::Unknown:
++        default:
++            overallSecurity = 1;
++            color1 = "#005500";
++            ownerTrustIcon = SmallIcon("security-medium"); // TODO: get a proper icon for that, ask oxygen people for "security-unkown" icon
++            ownerTrustString = "Unknown";
++            break;
++    }
++    
++    QString color2;
++    QString stateString;
++    QPixmap stateIcon = SmallIcon("security-low");
++    if (key.isExpired()) {
++        overallSecurity = 0;
++        color2 = "#aa0000";
++        stateString = i18n("Expired");
++    } else if (key.isInvalid()) {
++        overallSecurity = 0;
++        color2 = "#aa0000";
++        stateString = i18n("Invalid");
++    } else if (key.isRevoked()) {
++        overallSecurity = 0;
++        color2 = "#aa0000";
++        stateString = i18n("Revoked");
++    } else if (key.isDisabled()) {
++        overallSecurity = 0;
++        color2 = "#aa0000";
++        stateString = i18n("Disabled");
++        overallSecurity = 0;
++    } else {
++        stateIcon = SmallIcon("security-high");
++        color2 = "#005500";
++        stateString = "Valid";
++    }
++    
++    ui.ownerTrustIcon->setPixmap(ownerTrustIcon);
++    ui.stateIcon->setPixmap(stateIcon);
++    QString detailsString = i18n("Fingerprint: &lt;b&gt;%1&lt;/b&gt;&lt;br/&gt;Owner trust: &lt;b style=\"color:%2;\"&gt;%3&lt;/b&gt;&lt;br/&gt;State: &lt;b style=\"color:%4;\"&gt;%5&lt;/b&gt;",
++        shortKeyID, color1, ownerTrustString, color2, stateString);
++    ui.detailsLabel->setText(detailsString);
++    
++    QString securityPixmapName = "security-high";
++    if (overallSecurity == 1) {
++        securityPixmapName = "security-medium";
++    } else if (overallSecurity == 0) {
++        securityPixmapName = "security-low";
++    }
++    ui.shieldIcon->setPixmap(KIconLoader::global()->loadIcon(securityPixmapName, 
++        KIconLoader::Desktop, KIconLoader::SizeLarge));
++}
++
++void SecurityTooltip::sizeAndPosition()
++{
++    resize(QSize(365, 206));
++
++    QRect screenSize = KGlobalSettings::desktopGeometry(m_parent);
++    QPoint globalPos = globalPositionHint();
++    move(globalPos.x(), globalPos.y());
++}
++
++/**
++    * The preferred global coordinate at which the completion box's top left corner
++    * should be positioned.
++    */
++QPoint SecurityTooltip::globalPositionHint() const
++{
++    Q_ASSERT(m_parent != 0);
++    
++    QPoint dest;
++    KHTMLView* v = m_parent->m_kwp->rootViewPos(dest);
++    QPoint ret;
++    if (v) {
++        ret = v->mapToGlobal( dest + QPoint(0, m_parent->height()) );
++        int zoomLevel = v->zoomLevel();
++        if (zoomLevel != 100) {
++            ret.setX( ret.x()*zoomLevel/100 );
++            ret.setY( ret.y()*zoomLevel/100 );
++        }
++    }
++    return ret;
++}
++
++void SecurityTooltip::focusOutEvent(QFocusEvent *event)
++{
++    kDebug();
++    hide();
++}
++
++///////////////
++
++/**
++  * Shows the security icon(s) in a LineEditWidget for an input type text which
++  * is encrypted i.e. one which sends its contents cyphered with GPG. It also
++  * shows information details about the certificates being used on mouse over 
++  * and when clicked.
++  * @internal
++  */
++class SecurityWidget : public QWidget
++{
++public:
++    friend class SecurityTooltip;
++    SecurityWidget(DOM::HTMLInputElementImpl *input, LineEditWidget *parent)
++        : QWidget(parent), m_mouseOver(false), 
++        m_encryptedPixmap(SmallIcon("document-encrypt")), m_input(input),
++        m_tooltip(new SecurityTooltip(parent, input))
++    {
++        setMouseTracking(true);
++    }
++
++    QSize sizeHint() const
++    {
++        return m_encryptedPixmap.size();
++    }
++
++    void paintEvent(QPaintEvent *event)
++    {
++        QPainter p(this);
++        
++        if (m_mouseOver) {
++            p.setOpacity(0.7);
++        } else {
++            p.setOpacity(1);
++        }
++        p.drawPixmap( 0, 0, m_encryptedPixmap );
++        p.end();    
++    }
++    
++protected:
++    void enterEvent(QEvent *event)
++    {
++        m_mouseOver = true;
++        update();
++    }
++    
++    void leaveEvent(QEvent *event)
++    {
++        m_mouseOver = false;
++        update();
++    }
++    
++    void mouseReleaseEvent(QMouseEvent *event)
++    {
++        kDebug();
++        m_tooltip->popup();
++    }
++
++private:
++    bool m_mouseOver;
++    QPixmap m_encryptedPixmap;
++    DOM::HTMLInputElementImpl *m_input;
++    SecurityTooltip *m_tooltip;
++};
++#endif
++
++}
++
+ LineEditWidget::LineEditWidget(DOM::HTMLInputElementImpl* input, KHTMLView* view, QWidget* parent)
+     : KLineEdit(parent), m_input(input), m_view(view)
+ {
+@@ -648,12 +866,46 @@
+     setCompletionBox( new CompletionWidget( this ) );
+     completionBox()->setObjectName("completion box");
+     completionBox()->setFont(font());
++    
++#ifdef KLEO_SUPPORT
++    // If widget is encrypted add the encrypted icon
++    if (m_input->isEncrypted()) {
++        m_securityWidget = new khtml::SecurityWidget(input, this);
++        
++        // Readjust lineedit text margins so that they don't collide with the
++        // security widget
++        int left, right, top, bottom;
++        getTextMargins(&left, &top, &right, &bottom);
++        left += m_securityWidget->sizeHint().width();
++        setTextMargins(left, top, right, bottom); 
++        
++        // Update location after some minimal time or else it will be relocated
++        // in (0, 0) which is not what we want
++        updateSecurityWidgetLocation();
++    } else {
++        m_securityWidget = 0;
++    }
+ }
++#endif
+ 
+ LineEditWidget::~LineEditWidget()
+ {
+ }
+ 
++#ifdef KLEO_SUPPORT
++void LineEditWidget::updateSecurityWidgetLocation()
++{
++        // Reposition the security widget
++        QStyleOptionFrameV2 opt;
++        initStyleOption(&opt);
++        QRect textRect = style()->subElementRect(QStyle::SE_LineEditContents, &opt, this);
++        int midHeight = textRect.center().y();
++        int topHeight = midHeight - SmallIcon("document-encrypt").height() / 2 - 1;
++        m_securityWidget->move(textRect.x(), topHeight);
++        update();
++}
++#endif
++
+ void LineEditWidget::slotCheckSpelling()
+ {
+     if ( text().isEmpty() ) {
+@@ -883,8 +1135,16 @@
+         popup->addAction( m_spellAction );
+         m_spellAction->setEnabled( !text().isEmpty() );
+     }
+-    if ( !m_view->part()->onlyLocalReferences() ) {
++#ifdef KLEO_SUPPORT
++    if (m_input->isEncrypted()) {
+         popup->addSeparator();
++    // If widget is encrypted then it doesn't make sense to create a web
++    // shortcut for it.
++    } else if (!m_view->part()->onlyLocalReferences()) {
++#else
++    if (!m_view->part()->onlyLocalReferences()) {
++#endif
++        popup->addSeparator();
+         QAction *act = popup->addAction( i18n("Create Web Shortcut") );
+         connect(act, SIGNAL(triggered()),
+                 this, SLOT(slotCreateWebShortcut()));
+@@ -906,6 +1166,19 @@
  
  void LineEditWidget::paintEvent( QPaintEvent *pe )
  {
@@ -2588,52 +3200,12 @@ Index: rendering/render_form.cpp
 +        QPalette pal = palette();
 +        pal.setBrush(QPalette::Base, color);
 +        setPalette(pal);
-+        
-+        if (!hasFrame()) {
-+            p.fillRect(pe->rect(), palette().brush(QPalette::Base));
-+        }
-+        KLineEdit::paintEvent( pe );
-+        
-+        // Show padlock
-+        QPixmap pix = SmallIcon("document-encrypt");
-+        p.drawPixmap( pix.width() / 3, sizeHint().height() / 2 - pix.height() / 2 - 2, pix );
-+        p.end();
-+    } else if (!hasFrame()) {
-+        QPainter p(this);
-+        p.fillRect(pe->rect(), palette().brush(QPalette::Base));
-+        p.end();
-+        KLineEdit::paintEvent( pe );
 +    }
-+#else
++#endif
      if (!hasFrame()) {
          QPainter p(this);
          p.fillRect(pe->rect(), palette().brush(QPalette::Base));
-         p.end();
-     }
-     KLineEdit::paintEvent( pe );
-+#endif
- }
- 
- bool LineEditWidget::event( QEvent *e )
-@@ -955,6 +984,17 @@
- {
-     LineEditWidget *edit = new LineEditWidget(element, view(), view()->widget());
-     connect(edit,SIGNAL(returnPressed()), this, SLOT(slotReturnPressed()));
-+
-+#ifdef KLEO_SUPPORT
-+    if (element->isEncrypted()) {
-+        QRect r = edit->geometry();
-+        QPixmap pix = SmallIcon("security-high");
-+        int left, right, top, bottom;
-+        edit->getTextMargins(&left, &top, &right, &bottom);
-+        left += pix.width() + 2;
-+        edit->setTextMargins(left, top, right, bottom); 
-+    }
-+#endif
-     connect(edit,SIGNAL(textChanged(const QString &)),this,SLOT(slotTextChanged(const QString &)));
-     connect(edit->completionBox(),SIGNAL(currentTextChanged(const QString &)),this,SLOT(slotCompletionBoxActivated(const QString &)));
- 
-@@ -1072,6 +1112,16 @@
+@@ -1072,6 +1345,16 @@
          widget()->setMaxLength( ml );
      }
  
@@ -2650,7 +3222,7 @@ Index: rendering/render_form.cpp
      if (element()->value().string() != widget()->text()) {
          m_blockElementUpdates = true;
          int pos = widget()->cursorPosition();
-@@ -1079,6 +1129,7 @@
+@@ -1079,6 +1362,7 @@
          widget()->setCursorPosition(pos);
          m_blockElementUpdates = false;
      }
@@ -2658,16 +3230,12 @@ Index: rendering/render_form.cpp
      widget()->setReadOnly(element()->readOnly());
  
      RenderFormElement::updateFromElement();
-@@ -1089,7 +1140,15 @@
+@@ -1089,7 +1373,11 @@
      if (m_blockElementUpdates) return;
  
      // don't use setValue here!
 +    #ifdef KLEO_SUPPORT
-+    if (element()->isEncrypted()) {
-+        element()->setPlainTextValue(string);
-+    } else {
-+        element()->m_value = string;
-+    }
++    element()->setPlainTextValue(string);
 +    #else
      element()->m_value = string;
 +    #endif
@@ -2707,7 +3275,16 @@ Index: CMakeLists.txt
  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${KDE4_ENABLE_EXCEPTIONS}")
  
  configure_file(config-khtml.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-khtml.h )
-@@ -414,6 +422,7 @@
+@@ -344,6 +352,8 @@
+   ${CMAKE_SOURCE_DIR}/khtml/rendering/render_position.cpp
+ )
+ 
++kde4_add_ui_files(khtmlrender_STAT_SRCS ${CMAKE_SOURCE_DIR}/khtml/rendering/securitytooltip.ui)
++
+ # khtml/css/Makefile.am: khtmlcss
+ 
+ set(khtmlcss_STAT_SRCS
+@@ -414,6 +424,7 @@
  add_subdirectory( pics )
  add_subdirectory( ecma )
  
@@ -2715,7 +3292,7 @@ Index: CMakeLists.txt
  include_directories( ${KDE4_PHONON_INCLUDES} ${KDE4_KPARTS_INCLUDES} )
  include_directories( ${CMAKE_BINARY_DIR}/kio/kssl )
  include_directories( ${KDE4_KJS_INCLUDES} ${CMAKE_SOURCE_DIR}/kimgio ${CMAKE_SOURCE_DIR}/kio/kssl ${CMAKE_SOURCE_DIR}/interfaces ${CMAKE_SOURCE_DIR}/interfaces/kregexpeditor)
-@@ -509,8 +518,8 @@
+@@ -509,8 +520,8 @@
  
  kde4_add_library(khtml SHARED ${khtml_LIB_SRCS})
  
