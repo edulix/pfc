@@ -1,14 +1,24 @@
+Index: KleoConfig.cmake.in
+===================================================================
+--- KleoConfig.cmake.in	(revision 0)
++++ KleoConfig.cmake.in	(revision 0)
+@@ -0,0 +1,5 @@
++set( KLEO_INCLUDES "@KLEO_INCLUDE@" )
++
++include( "@LIB_INSTALL_DIR@/kleo/KleoLibraryDepends.cmake" )
++
++set( KLEO_LIBRARIES "@KLEO_LIBRARY@" )
 Index: CMakeLists.txt
 ===================================================================
---- CMakeLists.txt	(revision 1034981)
+--- CMakeLists.txt	(revision 1121414)
 +++ CMakeLists.txt	(working copy)
 @@ -1,4 +1,5 @@
  include_directories( ${GPGME_INCLUDES} ${Boost_INCLUDE_DIR} )
 +set( KLEO_INCLUDE ${INCLUDE_INSTALL_DIR} ${GPGME_INCLUDES} ${Boost_INCLUDE_DIR} )
- 
+ KDE4_NO_ENABLE_FINAL(libkleo)
  if (KDEPIM_ONLY_KLEO)
    add_definitions( -DKDEPIM_ONLY_KLEO )
-@@ -115,6 +116,14 @@
+@@ -112,6 +113,22 @@
  target_link_libraries(kleo ${kleo_LIB_LIBS} )
  endif(WIN32)
  set_target_properties(kleo PROPERTIES VERSION ${GENERIC_LIB_VERSION} SOVERSION ${GENERIC_LIB_SOVERSION} )
@@ -22,10 +32,6 @@ Index: CMakeLists.txt
 +
  install(TARGETS kleo ${INSTALL_TARGETS_DEFAULT_ARGS})
  
- install( FILES
-@@ -174,3 +183,11 @@
-     DESTINATION ${INCLUDE_INSTALL_DIR}/kleo/ui COMPONENT Devel)
- 
  install ( FILES libkleopatrarc.desktop DESTINATION ${CONFIG_INSTALL_DIR} RENAME libkleopatrarc )
 +
 +
@@ -36,13 +42,3 @@ Index: CMakeLists.txt
 +    DESTINATION
 +    ${LIB_INSTALL_DIR}/kleo )
 \ No newline at end of file
-Index: KleoConfig.cmake.in
-===================================================================
---- KleoConfig.cmake.in	(revision 0)
-+++ KleoConfig.cmake.in	(revision 0)
-@@ -0,0 +1,5 @@
-+set( KLEO_INCLUDES "@KLEO_INCLUDE@" )
-+
-+include( "@LIB_INSTALL_DIR@/kleo/KleoLibraryDepends.cmake" )
-+
-+set( KLEO_LIBRARIES "@KLEO_LIBRARY@" )

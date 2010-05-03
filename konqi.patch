@@ -1,8 +1,6 @@
-Index: src/konqextendedbookmarkmenuhelper.h
-===================================================================
 Index: settings/konqhtml/htmlopts.h
 ===================================================================
---- settings/konqhtml/htmlopts.h	(revision 1048061)
+--- settings/konqhtml/htmlopts.h	(revision 1121414)
 +++ settings/konqhtml/htmlopts.h	(working copy)
 @@ -11,6 +11,8 @@
  #include <QtGui/QCheckBox>
@@ -62,7 +60,7 @@ Index: settings/konqhtml/htmlopts.h
  #endif // HTMLOPTS_H
 Index: settings/konqhtml/CMakeLists.txt
 ===================================================================
---- settings/konqhtml/CMakeLists.txt	(revision 1048061)
+--- settings/konqhtml/CMakeLists.txt	(revision 1121414)
 +++ settings/konqhtml/CMakeLists.txt	(working copy)
 @@ -1,5 +1,7 @@
  include_directories(
@@ -89,7 +87,7 @@ Index: settings/konqhtml/CMakeLists.txt
  ########### install files ###############
 Index: settings/konqhtml/htmlopts.cpp
 ===================================================================
---- settings/konqhtml/htmlopts.cpp	(revision 1048061)
+--- settings/konqhtml/htmlopts.cpp	(revision 1121414)
 +++ settings/konqhtml/htmlopts.cpp	(working copy)
 @@ -13,6 +13,7 @@
  // Qt
@@ -99,7 +97,7 @@ Index: settings/konqhtml/htmlopts.cpp
  #include <QtGui/QLabel>
  #include <QtGui/QPushButton>
  #include <QtDBus/QDBusMessage>
-@@ -25,14 +26,34 @@
+@@ -25,14 +26,33 @@
  #include <knuminput.h>
  #include <kseparator.h>
  #include <kapplication.h>
@@ -109,7 +107,6 @@ Index: settings/konqhtml/htmlopts.cpp
 +#include <gpgme++/key.h>
 +#include <kleo/ui/keyselectiondialog.h>
 +#include <kleo/ui/keyrequester.h>
-+#include <kleo/cryptobackendfactory.h>
 +#include <kleo/cryptobackend.h>
 +#include <kleo/encryptjob.h>
 +#include <kleo/decryptjob.h>
@@ -134,13 +131,13 @@ Index: settings/konqhtml/htmlopts.cpp
  //-----------------------------------------------------------------------------
  
  KMiscHTMLOptions::KMiscHTMLOptions(QWidget *parent, const QVariantList&)
-@@ -135,6 +156,65 @@
+@@ -134,6 +154,65 @@
      connect(m_pAccessKeys, SIGNAL(toggled(bool)), SLOT(changed()));
      fl->addRow( m_pAccessKeys);
  
 +    
 +    #ifdef KLEO_SUPPORT
-+    row = -1;
++    int row = -1;
 +    QGroupBox *bgCryptography = new QGroupBox( i18nc("@title:group","Cryptography"));
 +    QGridLayout *glay = new QGridLayout( bgCryptography );
 +    glay->setColumnStretch( 1, 1 );
@@ -200,7 +197,7 @@ Index: settings/konqhtml/htmlopts.cpp
      lay->addStretch(5);
  
      emit changed(false);
-@@ -170,7 +250,15 @@
+@@ -169,7 +248,15 @@
      m_pFormCompletionCheckBox->setChecked( cg.readEntry( "FormCompletion", true ) );
      m_pMaxFormCompletionItems->setValue( cg.readEntry( "MaxFormCompletionItems", 10 ) );
      m_pMaxFormCompletionItems->setEnabled( m_pFormCompletionCheckBox->isChecked() );
@@ -216,7 +213,7 @@ Index: settings/konqhtml/htmlopts.cpp
      // Reads in the value of m_accessKeysEnabled by calling accessKeysEnabled() in khtml_settings.cpp
      KHTMLSettings settings;
      m_pAccessKeys->setChecked( settings.accessKeysEnabled() );
-@@ -202,17 +290,26 @@
+@@ -201,17 +288,26 @@
      cg.writeEntry( "MaxFormCompletionItems", m_pMaxFormCompletionItems->value() );
  
      cg.sync();
@@ -244,22 +241,14 @@ Index: settings/konqhtml/htmlopts.cpp
      // Send signal to all konqueror instances
      QDBusMessage message =
          QDBusMessage::createSignal("/KonqMain", "org.kde.Konqueror.Main", "reparseConfiguration");
-@@ -226,4 +323,3 @@
+@@ -225,4 +321,3 @@
  
  
  #include "htmlopts.moc"
 -
-Index: settings/konqhtml/config-konqueror.h.cmake
-===================================================================
---- settings/konqhtml/config-konqueror.h.cmake	(revision 0)
-+++ settings/konqhtml/config-konqueror.h.cmake	(revision 0)
-@@ -0,0 +1,3 @@
-+
-+/* Support for the experimental crypt extension */
-+#cmakedefine KLEO_SUPPORT 1
 Index: CMakeLists.txt
 ===================================================================
---- CMakeLists.txt	(revision 1048061)
+--- CMakeLists.txt	(revision 1121414)
 +++ CMakeLists.txt	(working copy)
 @@ -1,3 +1,10 @@
 +find_package(Gpgmepp)
