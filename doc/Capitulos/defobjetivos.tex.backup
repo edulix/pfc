@@ -1,0 +1,56 @@
+% 1. Objetivos: objetivos del proyecto, cifrado punto a punto en khtml en html extensión estándar
+\chapter{Motivación y Objetivos}\label{defobjetivos}
+\section{Motivación}\label{motivacion}
+
+Relacionados con la informática, existen dos grandes hitos tecnológicos relevantes: el primero es sin duda el boom tecnológico del microchip gracias al cual hemos conseguido ordenadores de una potencia de cálculo descomunal a bajo coste y nunca antes si quiera soñada. El segundo, es sin duda Internet, que permite comunicarnos entre personas de forma instantánea desde cualquier parte del planeta.
+
+Si unimos ambos hitos tecnológicos, que son la casi infinita capacidad de cálculo de los ordenadores actuales junto con la facilidad de coste marginal de comunicación que nos ofrece la red de redes, obtenemos varios resultados interesantes:
+
+\begin{enumerate}
+ \item La comunicación entre personas se realiza cada vez más mediante medios digitales, a través de la red de redes debido al bajo coste y lo fácil que esto resulta, frente a los antiguos métodos de comunicación como pueden ser: teléfono, fax, carta, teletipo, o incluso presencial. Ahora en vez de hablar en persona, hay muchas personas que prefieren hacerlo de forma online.
+ \item La red almacena cada vez más información sobre nosotros ``en la nube'', puesto que la capacidad de almacenamiento de los datos es notablemente alta y puesto que almacenar información online permite acceder a ella desde cualquier lugar en cualquier momento.
+ \item Gran parte de la información es fácilmente procesable por medios automáticos debido a la gran capacidad de cálculo de los ordenadores actuales.
+ \item Los usuarios se acostumbran a servicios que son de coste marginal y por ende a servicios gratuitos cuyo modelo de negocio se basa en la publicidad contextual.
+ \item Los gobiernos y empresas se aprovechan de toda esta información que anteriormente era imposible de recopilar, estructurar o usar de forma masiva, y ahora sí que es posible hacerlo de forma masiva y transparente.
+\end{enumerate}
+
+No es ningún secreto que empresas como Google basan su modelo de negocio en la información, y tampoco es ningún secreto (de hecho por definición una ley debe ser pública) que los Gobiernos se aprovechan de la digitalización de la información promulgando leyes como la Directiva Europea de Retención de Datos y la transposición de dicha directiva en España, la Ley de Retención de Datos, que especifica que por ejemplo debe guardarse la siguiente información sobre todas las páginas web que visitemos: URL, fecha de visita, dirección IP desde la cual se visitó. Por último y no menos importante, debido a que la información es poder, tampoco hay que descartar la posibilidad de que malhechores intenten beneficiarse de la inseguridad de nuestros datos para hacer negocios ilegales con ellos.
+
+En un mundo cada vez más informatizado, hay una cantidad creciente y preocupante de información sobre nosotros en la red, que inevitablemente pasa por múltiples intermediarios y que no controlamos. Por supuesto, existen medios para conseguir controlar en mayor o menor medida esta información, siendo el cifrado la principal herramienta.
+
+El cifrado consiste en el intercambio de mensajes de manera que sólo puedan ser leídos en claro por personas a las que van dirigidos y que poseen los medios para descifrarlos. Muchos protocolos de comunicación en Internet soportan cifrado, y sería del todo aconsejable que se cifrasen las comunicaciones siempre que fuese posible, no obstante no es así. Sin ir más lejos, el protocolo fundamental bajo el que funcionan las páginas web, HTTP, soporta cifrado mediante su variante HTTPS, pero un muy bajo porcentaje de páginas web lo soporta, y un porcentaje mucho menos lo utiliza por defecto.
+
+Cuando entramos en una página web mediante HTTPS mantenemos una conversación segura con el servidor, de tal manera que la llamada comunicación cliente-servidor no resulta comprometida. Este sistema es bastante robusto y suficente como para que millones de personas realicen sus compras por Internet, se autentiquen de forma segura o administren sus cuentas mediante la banca electrónica.
+
+No obstante cuando nos comunicamos por Internet con otras personas lo corriente no es intentar comunicarnos con personas que se encuentren en el servidor, sino con personas que se encuentran al mismo nivel que nosotros, conectadas al servidor, de tal manera que la conexión segura se establece entre nosotros y el servidor, y luego entre el servidor y la persona con la que queramos hablar, en el mejor de los casos. Los tres puntos que pueden ver el texto de la comunicación en claro son: nosotros, el servidor, y la persona con la que nos comunicamos. Sin embargo, el servidor no es el destinatario de la información y por tanto para mayor seguridad no debería de conocer el contenido de la misma.
+
+HTTPS utiliza para establecer una comunicación segura el protocolo SSL (Secure Socket Layer). Servicios no basados en la web como el correo electrónico (con IMAP o POP) soportan el mismo método de seguridad de las comunicaciones, pero tienen el mismo problema: la comunicación no es segura de ``punto a punto'' sino de ``cliente a servidor''. Lo mismo ocurre con otros servicios de comunicación entre personas (que son los ``puntos`` que se comunican), como la mensajería instantánea o el VoIP: muchos soportan únicamente cifrado de cliente a servidor de forma nativa. 
+
+Para resolver dicho problema, existen diferentes soluciones que implementan la seguridad punto a punto (''end-to-end security``):
+\begin{itemize}
+ \item Para el correo electrónico se puede utilizar PGP (Pretty Good Privacy) o su variante libre GnuPG para cifrar y firmar los mensajes. Este es un estándar utilizado e implementado por la mayoría de clientes de correo electrónico: KMail, Outlook, Thunderbird, etc.
+ \item Para la mensajería instantánea se puede utilizar OTR (Off The Record), igualmente para firmar y cifrar los mensajes. OTR se ha convertido también en un estándar soportado por una plétora de clientes de mensajería instantánea, entre ellos Kopete, Pidgin, o Adium.
+ \item Para el VoIP existe otro sistema criptográfico llamado ZRTP y que es una creación de Phil Zimmermann, uno de los creadores del anteriormente mencionado PGP, y que permite ser usado en la mayoría de clientes VoIP.
+\end{itemize}
+
+(Es normal que el lector no conozca algunos o todos los términos aquí empleados. Por ello en el siguiente apartado explicaremos muchos de los conceptos que subyacen en el problema que abordamos, y definiremos muchos de los términos técnicos antes mencionados.)
+
+Uno de los principales inconvenientes que surge a la hora de utilizar un sistema seguro de comunicación es que suele ser necesario bien instalarse un software concreto para que este funcione, o bien configurarlo de forma especial. Plantearse usar cifrado o no ya es una barrera infranqueable para la mayoría de los usuarios de ordenadores puesto que no están concienciados en el problema que supone la pérdida de privacidad inherente a enviar mensajes en claro por la red, porque ni se dan cuenta de que ésto está ocurriendo ni de las repercusiones a largo o medio plazo que ésto conlleva.
+
+Por otra parte, podría pensarse que al menos la tecnología está ahí y sólo es necesario llevar a cabo un movimiento de concienciación social en el tema de la seguridad para que empiece a usarse. En parte esto es cierto, y por ejemplo hay software como Adium (uno de los clientes de mensajería instantánea antes mencionado) que viene configurado por defecto con OTR activado de manera que utiliza lo que es conocido como ''cifrado oportunista``: si el usuario comienza una conversación con una persona que esté utilizando también un cliente de mensajería instantánea con soporte de OTR, Adium se da cuenta y automáticamente comienza una sesión de OTR segura en la que los mensajes van firmados y cifrados.
+
+No obstante incluso si los clientes de comunicaciones de escritorio parece que cada vez son más amigables en este sentido, también debemos contar con el factor web. Y es que cada vez más aplicaciones que antes eran típicamente aplicaciones de escritorio, ahora lo son directamente web. Ésto está ocurriendo con Gmail por ejemplo, que ahora sirve tanto como cliente de correo como de mensajería instantánea. Y recientemente ahora éstas aplicaciones web cada vez soportan más características, como por ejemplo videoconferencia y conversaciones de voz. 
+
+Es decir, mediante los clientes web tenemos la mayoría de las características que se encontraban en los clientes de escritorio, pero con la ventaja de que a diferencia de éstos, no hace falta instalarse ni configurar ningún software (a parte del navegador) para hacerlos funcionar, y están disponibles en cualquier navegador web y sistema operativo, desde dispositivos móviles a ordenadores de sobremesa.
+
+Si bien con los clientes de escritorio era posible mantener cierto grado de seguridad ''end-to-end``, pese a no haber llegado a un uso generalizado de estos sistemas de cifrado de las comunicaciones, en los sistemas de comunicación via web nos encontramos con una situación desoladora, puesto que la seguridad punto a punto no se implementa de forma nativa en prácticamente ningún de estos servicios web y de hecho, como veremos a lo largo de este documento, esto es debido entre otras cosas a que no existe ninguna manera confiable y sencilla de implementarla. 
+
+Mientras que las páginas web cada vez se utilizan más para comunicar a las personas, la privacidad online se deteriora. Tal y como mencinaban en un \cite[artículo recientemente en slashdot]{onlineprivacybroken}
+
+Todo esto es lo que motivó al autor a realizar su proyecto de fin de carrera sobre un tema 
+
+\section{Objetivos}\label{objetivos}
+\begin{itemize}
+ \item rrrr
+ \item 
+\end{itemize}

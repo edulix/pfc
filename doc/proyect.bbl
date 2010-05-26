@@ -1,0 +1,26 @@
+\begin{thebibliography}{onl10}
+\newcommand{\enquote}[1]{`#1'}
+\providecommand{\bibnamefont}[1]{#1}
+\providecommand{\bibfnamefont}[1]{#1}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+\providecommand{\bibAnnoteFile}[1]{%
+  \IfFileExists{#1}{\begin{quotation}\noindent\textsc{Key:} #1\\
+  \textsc{Annotation:}\ \input{#1}\end{quotation}}{}}
+\providecommand{\bibAnnote}[2]{%
+  \begin{quotation}\noindent\textsc{Key:} #1\\
+  \textsc{Annotation:}\ #2\end{quotation}}
+
+\bibitem[dS04]{desousa}
+\bibnamefont{de~Sousa}, \bibfnamefont{José~Martínez}, 2004.;
+  \emph{Ortografía y ortotipografía del español actual}.
+\bibAnnoteFile{desousa}
+
+\bibitem[onl10]{onlineprivacybroken}
+, Mayo 2010.
+\newblock \enquote{{Your Rights Online: Why Online Privacy Is Broken}.}
+\bibAnnoteFile{onlineprivacybroken}
+
+\end{thebibliography}

@@ -1,0 +1,16 @@
+\cdpchapter{Resumen}
+
+Cada vez está tomando más importancia la web y multitud de aplicaciones que antes eran típicamente de escritorio ahora lo son web. Estas aplicaciones web son usadas tanto por particulares como por empresas o instituciones como universidades.
+
+Muchas de estas aplicaciones web que han pasado de ser aplicaciones de escritorio a ser aplicaciones web son aplicaciones cuyo fin es la comunicación entre personas, debido a la facilidad con la que las páginas web son capaces de cumplir ese objetivo.
+
+Los clientes de correo electrónico o los clientes de mensajería instantánea son claros ejemplos de aplicaciones que antes eran típicamente de escritorio y que ahora en muchos casos son web. Los protocolos involucrados en este tipo de comunicaciones están diseñados con el concepto cliente-servidor, de manera que cualquier comunicación entre dos clientes pasa necesariamente por un servidor. Siendo así, las aplicaciones de escritorio para mantener una conversación segura entre dos cliente suelen implementar cifrado y firmado punto a punto: los clientes de correo suelen soportar PGP para este efecto, y para la mensajería instantánea se suele utilizar OTR.
+
+Sin embargo, en un mundo web en el que la información discurre con una facilidad nunca antes conocida, el único estándar de seguridad de las comunicaciones de extendido uso en las páginas web es SSL (Secure Socket Layer) mediante HTTPS, que permite mantener una conversación segura entre el cliente y el servidor web, pero no permite una comunicación segura, privada y/o autenticada entre dos clientes porque no implementa seguridad punto a punto entre dos cliente. Por tanto el servidor web que permite la comunicación entre ambos siempre podrá conocer y modificar el contenido de las mismas.
+
+HTTPS es un estándar actualmente muy arraigado en Internet que funciona razonablemente bien para el objetivo que fue diseñado. Gracias a HTTPS muchas personas realizan compras por Internet, administran sus cuentas mediante la banca electrónica y realizan trámites gubernamentales online (entre otros usos), sin necesidad de salir del salón de su casa, de forma segura, y sin necesidad de instalarse ningún software adicional, todo desde su navegador web preferido.
+
+El siguiente paso natural en seguridad para que las aplicaciones web puedan equipararse a nivel de características a las aplicaciones de escritorio es introducir el concepto de cifrado punto a punto (Point-to-point Encryption) directamente en los navegadores web, de forma que sea tan fácil y transparente a nivel de programación web, así como igual de confiable a nivel de usuario de una navegador web, como HTTPS. Ese es el objetivo de este proyecto.
+
+Llevar el concepto de cifrado punto a punto a las páginas web no es una idea nueva, y ya hay empresas ofreciendo servicios de este tipo. En esta memoria también estudiaremos las soluciones ya existentes y razonaremos porqué no son suficientes.
+
