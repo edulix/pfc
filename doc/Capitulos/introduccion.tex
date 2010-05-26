@@ -2,19 +2,169 @@
 \chapter{Introducción}\label{introduccion}
 \section{Definiciones y abreviaturas}\label{definicionesyabreviaturas}
 
-Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba.Esto es un cap\'itulo de prueba.
-Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba. 
-Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba. 
-Esto es un cap\'itulo de prueba. 
-
-Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba. 
-Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba. Esto es un cap\'itulo de prueba. 
-Esto es un cap\'itulo de prueba. 
-
-Esto es una referncia a la bibliograf\'ia \cite{desousa}.
+\begin{description}
 
 
+\item[Arquitectura cliente-servidor]
+Esta arquitectura consiste básicamente en un cliente que realiza peticiones a otro programa (el servidor) que le da respuesta. Aunque esta idea se puede aplicar a programas que se ejecutan sobre una sola computadora es más ventajosa en un sistema operativo multiusuario distribuido a través de una red de computadoras.
 
-\codigofuente{TeX}{Macro para insertar un cuadro}{codigo/macrotabla}
+En esta arquitectura la capacidad de proceso está repartida entre los clientes y los servidores, aunque son más importantes las ventajas de tipo organizativo debidas a la centralización de la gestión de la información y la separación de responsabilidades, lo que facilita y clarifica el diseño del sistema.
 
-\figura{0.5}{img/knuth}{Im\'agen de Knuth}{knuth}{}
+La separación entre cliente y servidor es una separación de tipo lógico, donde el servidor no se ejecuta necesariamente sobre una sola máquina ni es necesariamente un sólo programa. Los tipos específicos de servidores incluyen los servidores web, los servidores de archivo, los servidores del correo, etc. Mientras que sus propósitos varían de unos servicios a otros, la arquitectura básica seguirá siendo la misma.
+
+\item[Cifrado de clave pública]
+También llamado \textbf{cifrado asimétrico}, es el método criptográfico que usa un par de claves para el envío de mensajes. Las dos claves pertenecen a la misma persona a la que se ha enviado el mensaje. Una clave es pública y se puede entregar a cualquier persona, la otra clave es privada y el propietario debe guardarla de modo que nadie tenga acceso a ella. Además, los métodos criptográficos garantizan que esa pareja de claves sólo se puede generar una vez, de modo que se puede asumir que no es posible que dos personas hayan obtenido casualmente la misma pareja de claves.
+
+Si el remitente usa la clave pública del destinatario para cifrar el mensaje, una vez cifrado, sólo la clave privada del destinatario podrá descifrar este mensaje, ya que es el único que la conoce. Por tanto se logra la confidencialidad del envío del mensaje, nadie salvo el destinatario puede descifrarlo.
+
+Si el propietario del par de claves usa su clave privada para cifrar el mensaje, cualquiera puede descifrarlo utilizando su clave pública. En este caso se consigue por tanto la identificación y autentificación del remitente, ya que se sabe que sólo pudo haber sido él quien empleó su clave privada (salvo que alguien se la hubiese podido robar). Esta idea es el fundamento de la firma electrónica.
+
+\item[Criptografía]
+El arte o ciencia de cifrar y descifrar información  mediante técnicas especiales y se emplea frecuentemente para permitir un intercambio de mensajes que sólo puedan ser leídos por personas a las que van dirigidos y que poseen los medios para descifrarlos.
+
+\item[CSS, Cascading Style Sheets]
+Las \textbf{hojas de estilo en cascada}, es un lenguaje usado para definir la presentación de un documento estructurado escrito en HTML o XML (y por extensión en XHTML). El W3C (World Wide Web Consortium) es el encargado de formular la especificación de las hojas de estilo que servirán de estándar para los agentes de usuario o navegadores. La idea que se encuentra detrás del desarrollo de CSS es separar la estructura de un documento de su presentación.
+
+Por ejemplo, el elemento de HTML \verb|<h1>| indica que un bloque de texto es un encabezamiento y que es más importante que un bloque etiquetado como \verb|<h2>|. Versiones más antiguas de HTML permitían atributos extra dentro de la etiqueta abierta para darle formato (como el color o el tamaño de fuente). No obstante, cada etiqueta \verb|<h1>| debía disponer de la información si se deseaba un diseño consistente para una página y, además, una persona que lea esa página con un navegador pierde totalmente el control sobre la visualización del texto.
+
+Cuando se utiliza CSS, la etiqueta \verb|<h1>| no debería proporcionar información sobre como va a ser visualizado, solamente marca la estructura del documento. La información de estilo separada en una hoja de estilo, especifica cómo se ha de mostrar \verb|<h1>|: color, fuente, alineación del texto, tamaño y otras características no visuales como definir el volumen de un sintetizador de voz (véase Sintetización del habla), por ejemplo.
+
+La información de estilo puede ser adjuntada tanto como un documento separado o en el mismo documento HTML. En este último caso podrían definirse estilos generales en la cabecera del documento o en cada etiqueta particular mediante el atributo "style".
+
+\item[End-to-end Security]
+También conocida en español como \textbf{Seguridad punto a punto}, significa que los datos van firmados y/o cifrados entre aquellos que se comunican. En vez de confiar en Seguridad de la capa de transporte (transport-layer security, TLS), la seguridad punto a punto funciona a través de dominios de confianza. Esto resuelve por ejemplo el problema, cuando las sesiones TLS son finalizadas en un cortafuegos, y el DMZ es considerado diferente al dominio de confianza.
+
+\item[GPG, Gnu Privacy Guard o GnuPG]
+Es la alternativa de software libre a la suite de software criptográfico PGP. GnuPG cumple con el RFC 4880, que es la actual especificación estándar del IETF de OpenPGP. Las versiones actuales de PGP son interoperables con GnuPG y con otros sistemas OpenPGP-compatibles.
+
+GPG es parte del proyecto de software GNU de la Free Software Fundation, y ha recibido un importante apoyo financiero del gobierno alemán. Está disponible bajo la versión 3 de la Licencia General Pública GNU.
+
+\item[HTML, HyperText Markup Language]
+En castellano lenguaje de marcas de hipertexto, es el lenguaje de marcas predominante para las páginas web. Provee un medio para crear documentos estructorados mediante la denotación de semánticas estructurales para texto como cabeceras, párrafos, listas, enlaces, citas, y otros elementos. Permite incrustar imágenes y objetos y puede usar para crear formularios interactivos. Está escrito en forma de elementos HTML que consisten en ``etiquetas'' rodeadas con ``\verb|<|'' y ``\verb|>|'' dentro del contenido de la página. Puede cargar scripts en idiomas como Javascript que afectan al comportamiento de las páginas HTML. HTML también puede incluir hojas de estilo en cascada (CSS) para definir la apariencia y distribución del texto y el resto de los elementos. El W3C es el mantenedor de ambos estándares: HTML y CSS.
+
+\item[HTTPS, Hypertext Transfer Protocol Secure]
+En español Protocolo seguro de transferencia de hipertexto, más conocido por sus siglas \textbf{HTTPS}, es un protocolo de red basado en el protocolo HTTP, destinado a la transferencia segura de datos de hipertexto, es decir, es la versión segura de HTTP.
+
+Es utilizado principalmente por entidades bancarias, tiendas en línea, y cualquier tipo de servicio que requiera el envío de datos personales o contraseñas.
+
+\item[HTTP, Hypertext Transfer Protocol o HTTP]
+En español protocolo de transferencia de hipertexto, es el protocolo  usado en cada transacción de la World Wide Web. HTTP fue desarrollado por el World Wide Web Consortium y la Internet Engineering Task Force (IETF), colaboración que culminó en 1999 con la publicación de una serie de RFC, siendo el más importante de ellos el RFC 2616, que especifica la versión 1.1. HTTP define la sintaxis y la semántica que utilizan los elementos de software de la arquitectura web (clientes, servidores, proxies) para comunicarse. Es un protocolo orientado a transacciones y sigue el esquema petición-respuesta entre un cliente y un servidor. Al cliente que efectúa la petición (un navegador web o un spider) se lo conoce como ``user agent'' (agente del usuario). A la información transmitida se la llama recurso y se la identifica mediante un localizador uniforme de recursos (URL). Los recursos pueden ser archivos, el resultado de la ejecución de un programa, una consulta a una base de datos, la traducción automática de un documento, etc.
+
+HTTP es un protocolo sin estado, es decir, que no guarda ninguna información sobre conexiones anteriores. El desarrollo de aplicaciones web necesita frecuentemente mantener estado. Para esto se usan las cookies, que es información que un servidor puede almacenar en el sistema cliente. Esto le permite a las aplicaciones web instituir la noción de ``sesión'', y también permite rastrear usuarios ya que las cookies pueden guardarse en el cliente por tiempo indeterminado.
+
+\item[IMAP, Internet Message Access Protocol]
+Es un protocolo de red de acceso a mensajes electrónicos almacenados en un servidor. Mediante IMAP se puede tener acceso al correo electrónico desde cualquier equipo que tenga una conexión a Internet. IMAP tiene varias ventajas sobre POP, que es el otro protocolo empleado para obtener correo desde un servidor. Por ejemplo, es posible especificar en IMAP carpetas del lado servidor. Por otro lado, es más complejo que POP ya que permite visualizar los mensajes de manera remota y no descargando los mensajes como lo hace POP.
+
+\item[Javascript]
+Es un lenguaje de scripting orientado a objetos, utilizado para acceder a objetos en aplicaciones. Principalmente, se utiliza integrado en un navegador web permitiendo el desarrollo de interfaces de usuario mejoradas y páginas web dinámicas. JavaScript es un dialecto de ECMAScript  y se caracteriza por ser un lenguaje basado en prototipos, con entrada dinámica y con funciones de primera clase. JavaScript ha tenido influencia de múltiples lenguajes y se diseñó con una sintaxis similar al lenguaje de programación Java, aunque más fácil de utilizar para personas que no programan.
+
+Todos los navegadores modernos interpretan el código JavaScript integrado dentro de las páginas web. Para interactuar con una página web se provee al lenguaje JavaScript de una implementación del DOM. El lenguaje fue inventado por Brendan Eich en la empresa Netscape Communications, la que desarrolló los primeros navegadores web comerciales. Apareció por primera vez en el producto de Netscape llamado Netscape Navigator 2.0.
+
+Tradicionalmente, se venía utilizando en páginas web HTML, para realizar operaciones y en el marco de la aplicación cliente, sin acceso a funciones del servidor. JavaScript se ejecuta en el agente de usuario, al mismo tiempo que las sentencias van descargándose junto con el código HTML.
+
+En 1997 los autores propusieron JavaScript para que fuera adoptado como estándar de la European Computer Manufacturers 'Association ECMA, que a pesar de su nombre no es europeo sino internacional, con sede en Ginebra. En junio de 1997 fue adoptado como un estándar ECMA, con el nombre de ECMAScript. Poco después también como un estándar ISO.
+
+\item[KDE]
+Es una comunidad de software libre que produce un conjunto integrado de aplicaciones multiplataforma diseñadas para funcionar en Linux, FreeBSD, Windows, Solaris y Mac OS X. Es más conocido conocido por el entorno de escritorio Plasma, el entorno de escritorio que viene como el entorno de trabajo por defecto en muchas distribuciones como openSUSE, Mandriva Linux, Slackware, PCLinuxOS, Kubuntu, Arch Linux, VectorLinux, Pardus y otras. El fin del proyecto es proveer las funciones básicas de escritorio y las aplicaciones de uso diario así como las herramientas y la documentación para que los desarrolladores puedan escribir aplicaciones para el sistema. En este aspecto, el proyecto KDE sirve como un proyecto que acoge a muchas otras aplicaciones y menores proyectos que están basados en tecnología KDE, entre las que se incluyen KOffice, KDevelop, Amarok, K3B y muchas otras aplicaciones. El software KDE está basado en el toolkit Qt, aunque tambien tiene soporte para programas basados en GTK, así como para temas visuales basados en GTK. La versión original GPL de este toolkit sólo existía para la plataforma X11, pero desde el lanzamiento de Qt 4, hay versiones GPL disponibles para todas las plataformas soportadas. Esto permite al software KDE basado en Qt4 ser también ser distribuido en Microsoft Windows y Mac OS X.
+
+\item[KHTML]
+Es el motor de renderizado HTML libre desarrollado para el proyecto KDE. Fue creado para el navegador web de KDE, Konqueror. El motor fue más tarde adaptado en enero del 2003 por Apple para su navegador Safari, y la compañía devolvió todas las mejoras aplicadas sobre el código original, tal como pide la licencia. Otra compañía utilizando KHTML es YellowTAB, la cual comercializa una distribución de BeOS. KHTML fue escrito en C++ y se encuentra liberado bajo la licencia LGPL.
+
+\item[Man in the Middle]
+En criptografía, un ataque man-in-the-middle  (MitM o intermediario, en castellano) es un ataque en el que el enemigo adquiere la capacidad de leer, insertar y modificar a voluntad, los mensajes entre dos partes sin que ninguna de ellas conozca que el enlace entre ellos ha sido violado. El atacante debe ser capaz de observar e interceptar mensajes entre las dos víctimas. El ataque MitM es particularmente significativo en el protocolo original de intercambio de claves de Diffie-Hellman, cuando éste se emplea sin autenticación.
+
+
+\item[OTR, Off-the-Record]
+Es un protocolo criptográfico que provee cifrado fuerte para conversaciones de mensajería instantánea. OTR usa una combinación del algoritmo de clave asimétrica AES, el intercambio de claves de Diffie-Hellman, y la función de hash SHA-1. Además de autenticación y cifrado, OTR provee secreto perfecto y cifrado maleable.
+
+La principal motivación detrás del protocolo era permitir la negación de la conversación de sus participantes al vez que se mantenía conversación confidencial, como con una conversación en la vida real. Eso es en contraste con la mayoría de herramientas de cifrado que se asemejan más a una escritura firmada en papel, que puede ser usada luego como un registro para demostrar que la comunicación ocurrió, los participantes, y el contenido de la comunicación. En la mayoría de los casos la gente usando software de cifrado no se da cuenta de esto y puede que OTR les fuese más útil. El paper inicial introductorio se llamaba ``"Off-the-Record Communication, or, Why Not To Use PGP''.
+
+El protocolo OTR fue diseñado por los criptógrafos Ian Goldberg y Nikita Borisov. Crearon una librería para facilitar a los desarrolladores de clientes de mensajería instantánea implementar el protocolo y un proxy-OTR especial para AIM, ICQ, y .Mac, clientes que soportan proxies.
+
+
+\item[OpenPGP]
+La IETF se ha basado en el diseño de PGP para crear el estándar de Internet OpenPGP. Las últimas versiones de PGP son conformes o compatibles en mayor o menor medida con ese estándar. 
+
+\item[PGP, Pretty Good Privacy]
+En español privacidad bastante buena, es un programa desarrollado por Phil Zimmermann y cuya finalidad es proteger la información distribuida a través de Internet mediante el uso de criptografía de clave pública, así como facilitar la autenticación de documentos gracias a firmas digitales.
+
+PGP originalmente fue diseñado y desarrollado por Phil Zimmermann en 1991. El nombre está inspirado en el del colmado Ralph's Pretty Good Grocery de Lake Wobegon, una ciudad ficticia inventada por el locutor de radio Garrison Keillor.
+
+\item[PKI, Public Key Infrastructure]
+En criptografía, una infraestructura de clave publica es una combinación de hardware y software, políticas y procedimientos de seguridad que permiten la ejecución con garantías de operaciones criptográficas como el cifrado, la firma digital o el no repudio de transacciones electrónicas.
+
+El término PKI se utiliza para referirse tanto a la autoridad de certificación y al resto de componentes, como para referirse, de manera más amplia y a veces confusa, al uso de algoritmos de clave pública en comunicaciones electrónicas. Este último significado es incorrecto, ya que no se requieren métodos específicos de PKI para usar algoritmos de clave pública.
+
+
+\item[POP3]
+En informática se utiliza el Post Office Protocol (Protocolo de la oficina de correo) en clientes locales de correo para obtener los mensajes de correo electrónico almacenados en un servidor remoto. Es un protocolo de nivel de aplicación en el Modelo OSI.
+
+\item[Privacidad]
+La privacidad puede ser definida como el ámbito de la vida personal de un individuo que se desarrolla en un espacio reservado y debe mantenerse confidencial.
+
+Aunque privacy deriva del latín privatus, privacidad se ha incorporado a nuestra lengua en los últimos años a través del inglés, por lo cual el término es rechazado por algunos como un anglicismo, alegando que el término correcto es intimidad, y en cambio es aceptado por otros como un préstamo lingüístico válido.
+
+Según el Diccionario de la lengua española de la Real Academia Española - DRAE, privacidad se define como "ámbito de la vida privada que se tiene derecho a proteger de cualquier intromisión" e intimidad se define como "zona espiritual íntima y reservada de una persona o de un grupo, especialmente de una familia".
+
+El desarrollo de la Sociedad de la Información y la expansión de la Informática y de las Telecomunicaciones plantea nuevas amenazas para la privacidad que han de ser afrontadas desde diversos puntos de vista: social, cultural, legal, tecnológico...
+
+\item[S/MIME, Secure / Multipurpose Internet Mail Extensions]
+En español Extensiones de Correo de Internet de Propósitos Múltiples / Seguro, es un estándar para criptografía de clave pública y firmado de correo electrónico encapsulado en MIME.
+
+\item[SIP, Session Initiation Protocol]
+Es un protocolo desarrollado por el grupo de trabajo MMUSIC del IETF con la intención de ser el estándar para la iniciación, modificación y finalización de sesiones interactivas de usuario donde intervienen elementos multimedia como el video, voz, mensajería instantánea, juegos en línea y realidad virtual.
+
+La sintaxis de sus operaciones se asemeja a las de HTTP y SMTP, los protocolos utilizados en los servicios de páginas Web y de distribución de e-mails respectivamente. Esta similitud es natural ya que SIP fue diseñado para que la telefonía se vuelva un servicio más en Internet.[1]
+
+En noviembre del año 2000, SIP fue aceptado como el protocolo de señalización de 3GPP y elemento permanente de la arquitectura IMS (IP Multimedia Subsystem). SIP es uno de los protocolos de señalización para voz sobre IP, otro es H.323 y IAX actualmente IAX2.
+
+\item[SSL, Secure Sockets Layer]
+En español Protocolo de Capa de Conexión Segura- (SSL) y Transport Layer Security -Seguridad de la Capa de Transporte- (TLS), su sucesor, son protocolos criptográficos que proporcionan comunicaciones seguras por una red, comúnmente Internet.
+
+Existen pequeñas diferencias entre SSL 3.0 y TLS 1.0, pero el protocolo permanece sustancialmente igual. El término "SSL" según se usa aquí, se aplica a ambos protocolos a menos que el contexto indique lo contrario.
+
+\item[Seguridad]
+El término seguridad proviene de la palabra securitas del latín. Cotidianamente se puede referir a la seguridad como la ausencia de riesgo o también a la confianza en algo o alguien. Sin embargo, el término puede tomar diversos sentidos según el área o campo a la que haga referencia.
+
+La seguridad es un estado de ánimo, una sensación, una cualidad intangible. Se puede entender como un objetivo y un fin que el hombre anhela constantemente como una necesidad primaria.
+
+Según la pirámide de Maslow, la seguridad en el hombre ocupa el segundo nivel dentro de las necesidades de déficit.
+
+\item[VoIP]
+Voz sobre Protocolo de Internet, también llamado Voz IP, VozIP, VoIP (por sus siglas en inglés), es un grupo de recursos que hacen posible que la señal de voz viaje a través de Internet empleando un protocolo IP (Protocolo de Internet). Esto significa que se envía la señal de voz en forma digital, en paquetes, en lugar de enviarla en forma digital o analógica, a través de circuitos utilizables sólo para telefonía como una compañía telefónica convencional o PSTN (sigla de Public Switched Telephone Network, Red Telefónica Pública Conmutada).
+
+Los Protocolos que se usan para enviar las señales de voz sobre la red IP se conocen como protocolos de Voz sobre IP o protocolos IP. Estos pueden verse como aplicaciones comerciales de la "Red experimental de Protocolo de Voz" (1973), inventada por ARPANET.
+
+El tráfico de Voz sobre IP puede circular por cualquier red IP, incluyendo aquellas conectadas a Internet, como por ejemplo las redes de área local (LAN).
+
+\item[W3C, World Wide Web Consortium]
+Es un consorcio internacional que produce recomendaciones para la World Wide Web. Está dirigida por Tim Berners-Lee, el creador original de URL (Uniform Resource Locator, Localizador Uniforme de Recursos), HTTP (HyperText Transfer Protocol, Protocolo de Transferencia de HiperTexto) y HTML (Lenguaje de Marcado de HiperTexto) que son las principales tecnologías sobre las que se basa la Web.
+
+\item[XML Encryption, XML-Enc]
+Es una especificación, gobernada por una recomendación del W3C, que define como cifrar los contenidos de un elemento XML.
+
+Aunque el cifrado XML puede usarse para cifrar cualquier tipo de datos, es sin embargo conocido como ``Cifrado XML'' porque un elemento XML (que es bien un elemento EncryptedData o EncryptedKey) contiene o se refiere al texto cifrado, a la información de la clave, y a los algoritmos.
+
+Ambos XML Signature y XML Encryption usan el elemento KeyInfo, que aparece como hijo de los elementos SignedInfo, EncryptedData, o EncryptedKey y provee información a un destinatario sobre el material de claves usado para validar una firma o descrifrar datos. No obstante el elemento KeyInfo es opcional: puede ir adjunto en el mensaje o ser obtenido por un canal seguro.
+
+\item[XML Signature, XMLDsig, XML-DSig, XML-Sig]
+
+Es una recomendación del W3C que define una sintaxis XML para firmas digitales. Funcionalmente, tiene mucho en común con PKCS\#7 pero es mucho más extensible y más enfocado hacia la firma de documentos XML. Se usa en varias tecnología web como en SOAP, SAML y otros.
+
+Las firmas XML pueden usarse firmar documento XML, pero cualquier cosa que sea accesible mediante una URL puede realmente ser firmada. Una firma XML usada para firmar un recurso fuera de un documento XML se llama una firma separada (detached). Si se utiliza para firmar una parte del documento que la contiene, se llama una firma envuelta (enveloped). Si contiene los datos firmados dentro de sí mismo se llama una firma envolvente (enveloping).
+
+\item[XMPP, Extensible Messaging and Presence Protocol, Jabber]
+El Protocolo extensible de mensajería y comunicación de presencia anteriormente llamado Jabber, es un protocolo abierto y extensible basado en XML, originalmente ideado para mensajería instantánea.
+
+Con el protocolo XMPP queda establecida una plataforma para el intercambio de datos XML que puede ser usada en aplicaciones de mensajería instantánea. Las características en cuanto a adaptabilidad y sencillez del XML son heredadas de este modo por el protocolo XMPP.
+
+A diferencia de los protocolos propietarios de intercambio de mensajes como ICQ, Y! y Windows Live Messenger, se encuentra documentado y se insta a utilizarlo en cualquier proyecto. Existen servidores y clientes libres que pueden ser usados sin coste alguno. Este es el protocolo que seleccionó Google para su servicio de mensajería Google Talk.
+
+\item[ZRTP]
+ZRTP es una extensión de Real-time Transport Protocol (RTP) que describe el establecimiento de un intercambio Diffie-Hellman de claves para el Secure Real-time Transport Protocol (SRTP). Fue enviado al IETF por Phil Zimmermann, Jon Callas y Alan Johnston el 5 de marzo de 2006. Session Initiation Protocol (SIP) es un estándar VoIP.
+
+ZRTP se describe en el Internet-Draft  como un ``protocolo de acuerdo de claves que realiza un intercambio de claves Diffie-Hellman durante el establecimiento en banda (in-band) de una llamada en el flujo de datos Real-time Transport Protocol (RTP) que ha sido establecido empleando otro protocolo de señalización como pueda ser Session Initiation Protocol (SIP). Esto genera un secreto compartido que es usado para generar las claves y el salt para una sesión de Secure RTP (SRTP).'' Una de las funcionalidades de ZRTP es que no requiere el intercambio previo de otros secretos compartidos o una Infrastructura de Clave Pública (PKI), a la vez que evita ataques de man in the middle. Además, no delegan en la señalización SIP para la gestión de claves ni en ningún servidor. Soporta cifrado oportunista detectando automáticamente si el cliente VoIP del otro lado soporta ZRTP.
+
+ZRTP puede usarse con cualquier protocolo de señalización como SIP, H.323, Jabber, y Peer-to-Peer SIP. ZRTP es independiente de la capa de señalización, puesto que realiza toda su negociación de claves dentro del flujo de datos RTP.
+
+\end{description}
