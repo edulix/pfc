@@ -1,0 +1,9 @@
+
+This project adds support for end to end security for web pages into KHTML. It's my final career project, and it's a proof of concept and NOT ready for wide 
+ usage, but instead this should be taken as a demonstration of what could and should be done for improving the security of the web.
+
+The implementation involves a patch of KHTML which adds a few attributes to HTML elements such as "div" and "input". For encryption management the library libkleo is used.
+
+INSTALL
+
+First thing to setup is a KDE development environment, to be able to compile kdelibs, kdebase and kdepim (for libkleo). Then, once those have been compiled and installed, the patches will be applied and then they will be compiled and reinstalled.
