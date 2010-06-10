@@ -145,6 +145,29 @@ Index: khtml_settings.cpp
 +}
 +#endif
  #include "khtml_settings.moc"
+Index: khtml_ext.h
+===================================================================
+--- khtml_ext.h	(revision 1132763)
++++ khtml_ext.h	(working copy)
+@@ -28,9 +28,8 @@
+ #define __khtml_ext_h__
+ 
+ #include "khtml_part.h"
+-
++#include "config-khtml.h" // For KLEO_SUPPORT
+ #include <QtCore/QPointer>
+-
+ #include <kselectaction.h>
+ #include <kio/global.h>
+ 
+@@ -148,6 +147,7 @@
+   void slotBlockHost();
+   void slotBlockIFrame();
+     void openSelection();
++    void slotDetailsOfEncryptedMessage();
+ 
+ private:
+     void addSearchActions(QList<QAction *>& editActions);
 Index: misc/htmlnames.h
 ===================================================================
 --- misc/htmlnames.h	(revision 1132763)
@@ -3027,6 +3050,119 @@ Index: misc/htmlnames.cpp
      s_idTable->addStaticMapping(localNamePart(ATTR_SIZE), "size");
      s_idTable->addStaticMapping(localNamePart(ATTR_START), "start");
      s_idTable->addStaticMapping(localNamePart(ATTR_TABINDEX), "tabindex");
+Index: khtml_ext.cpp
+===================================================================
+--- khtml_ext.cpp	(revision 1132763)
++++ khtml_ext.cpp	(working copy)
+@@ -33,6 +33,12 @@
+ #include "misc/loader.h"
+ #include "dom/html_form.h"
+ #include "dom/html_image.h"
++#ifdef KLEO_SUPPORT
++#include "ui_encryptiondetails.h"
++#include <kleo/cryptobackendfactory.h>
++#include <kleo/keylistjob.h>
++#include <gpgme++/keylistresult.h>
++#endif
+ #include <QtGui/QClipboard>
+ #include <QtCore/QFileInfo>
+ #include <QtGui/QMenu>
+@@ -68,6 +74,8 @@
+ #include "misc/htmltags.h"
+ 
+ #include "khtmlpart_p.h"
++#include <html_blockimpl.h>
++#include <gpgme++/key.h>
+ 
+ KHTMLPartBrowserExtension::KHTMLPartBrowserExtension( KHTMLPart *parent )
+ : KParts::BrowserExtension( parent )
+@@ -390,6 +398,9 @@
+   QString m_suggestedFilename;
+     KActionCollection* m_actionCollection;
+     KParts::BrowserExtension::ActionGroupMap actionGroups;
++#ifdef KLEO_SUPPORT
++    DOM::Element m_nodeUnderMouse;
++#endif
+ };
+ 
+ 
+@@ -403,6 +414,9 @@
+     bool hasSelection = khtml->hasSelection();
+ 
+     DOM::Element e = khtml->nodeUnderMouse();
++#ifdef KLEO_SUPPORT
++    d->m_nodeUnderMouse = e;
++#endif
+ 
+     if ( !e.isNull() && (e.elementId() == ID_IMG ||
+                          (e.elementId() == ID_INPUT && !static_cast<DOM::HTMLInputElement>(e).src().isEmpty())))
+@@ -448,6 +462,7 @@
+         editActions.append(separator);
+ 
+         d->actionGroups.insert("editactions", editActions);
++        d->actionGroups.insert("tonto", editActions);
+     }
+ 
+     if (!url.isEmpty()) {
+@@ -539,6 +554,19 @@
+         }
+     }
+ 
++#ifdef KLEO_SUPPORT
++    if (!e.isNull() && e.elementId() == ID_DIV) {
++        DOM::HTMLDivElementImpl *div = static_cast<DOM::HTMLDivElementImpl*>(e.handle());
++        if (div->isEncrypted()) {
++            KAction *action = new KAction(i18n("&Details of Encrypted Message..."), this);
++            action->setIcon(SmallIcon("security-high"));
++            d->m_actionCollection->addAction("detailsofencryptedmessage", action);
++            connect(action, SIGNAL(triggered(bool)), this, SLOT(slotDetailsOfEncryptedMessage()));
++            partActions.append(action);
++        }
++    }
++#endif
++
+     if (isImage) {
+         if ( e.elementId() == ID_IMG ) {
+             d->m_imageURL = KUrl( static_cast<DOM::HTMLImageElement>( e ).src().string() );
+@@ -630,6 +658,38 @@
+     delete d;
+ }
+ 
++// #ifdef KLEO_SUPPORT
++void KHTMLPopupGUIClient::slotDetailsOfEncryptedMessage()
++{
++    DOM::HTMLDivElementImpl *div =
++        static_cast<DOM::HTMLDivElementImpl*>(d->m_nodeUnderMouse.handle());
++    DOM::TextImpl *textImpl = static_cast<DOM::TextImpl *>(div->firstChild());
++    kDebug() << textImpl->plainTextvalue();
++
++    // Obtain key
++    QString shortKeyID = textImpl->decryptionResult().recipient(0).shortKeyID();
++    std::vector<GpgME::Key> keys;
++    Kleo::KeyListJob * job = Kleo::CryptoBackendFactory::instance()->openpgp()->keyListJob(false);
++    job->exec(QStringList(shortKeyID), false, keys);
++    if (keys.empty()) {
++        return;
++    }
++    GpgME::Key key = keys.front();
++    
++    QDialog *dialog = new QDialog(0);
++    Ui::EncryptionDialog dialogUi;
++    dialogUi.setupUi(dialog);
++    dialogUi.closeButton->setIcon(SmallIcon("dialog-close"));
++    dialogUi.plainText->setPlainText(textImpl->plainTextvalue()->string());
++    dialogUi.nameLabel->setText(key.userID(0).name());
++    dialogUi.emailLabel->setText(key.userID(0).email());
++    dialogUi.detailsLabel->setText(i18n("Fingerprint: &lt;b&gt;%1&lt;/b&gt;&lt;br/&gt;",
++        key.shortKeyID()));
++    connect(dialogUi.closeButton, SIGNAL(clicked()), dialog, SLOT(close()));
++    dialog->show();
++}
++// #endif
++
+ void KHTMLPopupGUIClient::addSearchActions(QList<QAction *>& editActions)
+ {
+     // Fill search provider entries
 Index: tests/CMakeLists.txt
 ===================================================================
 --- tests/CMakeLists.txt	(revision 1132763)
@@ -3064,7 +3200,15 @@ Index: html/html_blockimpl.cpp
 ===================================================================
 --- html/html_blockimpl.cpp	(revision 1132763)
 +++ html/html_blockimpl.cpp	(working copy)
-@@ -254,8 +254,25 @@
+@@ -33,6 +33,7 @@
+ #include "misc/htmlhashes.h"
+ 
+ #include <kdebug.h>
++#include <render_object.h>
+ 
+ using namespace khtml;
+ using namespace DOM;
+@@ -254,8 +255,29 @@
      }
  }
  
@@ -3077,7 +3221,11 @@ Index: html/html_blockimpl.cpp
 +    if (!isEncrypted()) {
 +        return DOM::HTMLGenericElementImpl::addChild(newChild);
 +    } else if (childNodeCount() == 0 && newChild->isTextNode()) {
-+        return DOM::HTMLGenericElementImpl::addChild(newChild);
++        NodeImpl* ret = DOM::HTMLGenericElementImpl::addChild(newChild);
++        // couldn't be done earlier because TextImpl::isEncrypted() would return false as it had
++        // no parent because we hadn't called to addChild yet:
++        static_cast<CharacterDataImpl*>(newChild)->decrypt();
++        return ret;
 +    } else {
 +        return 0;
 +    }
@@ -3379,7 +3527,7 @@ Index: html/html_elementimpl.cpp
 ===================================================================
 --- html/html_elementimpl.cpp	(revision 1132763)
 +++ html/html_elementimpl.cpp	(working copy)
-@@ -151,6 +151,13 @@
+@@ -151,6 +151,14 @@
      case ATTR_NAME:
          document()->incDOMTreeVersion(DocumentImpl::TV_IDNameHref);
          break;
@@ -3388,12 +3536,13 @@ Index: html/html_elementimpl.cpp
 +        if (strcasecmp(attr->value(), "gpg") == 0) {
 +            m_encryptionType = GPG;
 +        }
++        kDebug(6035) << "making the thing encrypted";
 +        break;
 +#endif
      case ATTR_CONTENTEDITABLE:
          setContentEditable(attr);
          break;
-@@ -507,6 +514,7 @@
+@@ -507,6 +515,7 @@
  
  void HTMLElementImpl::setInnerHTML( const DOMString &html, int &exceptioncode )
  {
@@ -3401,7 +3550,7 @@ Index: html/html_elementimpl.cpp
      if (id() == ID_SCRIPT || id() == ID_STYLE) {
          // Script and CSS source shouldn't be parsed as HTML.
          removeChildren();
-@@ -531,6 +539,7 @@
+@@ -531,6 +540,7 @@
  
  void HTMLElementImpl::setInnerText( const DOMString &text, int& exceptioncode )
  {
@@ -3522,7 +3671,7 @@ Index: rendering/render_form.h
 ===================================================================
 --- rendering/render_form.h	(revision 1132763)
 +++ rendering/render_form.h	(working copy)
-@@ -24,12 +24,14 @@
+@@ -24,12 +24,16 @@
  #ifndef RENDER_FORM_H
  #define RENDER_FORM_H
  
@@ -3533,11 +3682,13 @@ Index: rendering/render_form.h
  #include "rendering/render_style.h"
  #include "khtmlview.h"
  #include "html/html_formimpl.h"
++#ifdef KLEO_SUPPORT
 +#include "ui_securitytooltip.h"
++#endif
  
  class QWidget;
  
-@@ -37,6 +39,8 @@
+@@ -37,6 +41,8 @@
  #include <kurlrequester.h>
  #include <klineedit.h>
  #include <QtGui/QCheckBox>
@@ -3546,7 +3697,7 @@ Index: rendering/render_form.h
  #include <QtGui/QRadioButton>
  #include <QtGui/QPushButton>
  #include <klistwidget.h>
-@@ -292,6 +296,7 @@
+@@ -292,6 +298,7 @@
  
  // -------------------------------------------------------------------------
  
@@ -3554,7 +3705,7 @@ Index: rendering/render_form.h
  class LineEditWidget : public KLineEdit, public KHTMLWidget
  {
      Q_OBJECT
-@@ -308,6 +313,9 @@
+@@ -308,6 +315,9 @@
      virtual void mouseMoveEvent(QMouseEvent *e);
      virtual void contextMenuEvent(QContextMenuEvent *e);
  private Q_SLOTS:
@@ -3564,7 +3715,7 @@ Index: rendering/render_form.h
      void clearHistoryActivated();
      void slotCheckSpelling();
      void slotSpellCheckDone( const QString &s );
-@@ -323,6 +331,9 @@
+@@ -323,6 +333,9 @@
      DOM::HTMLInputElementImpl* m_input;
      KHTMLView* m_view;
      KAction *m_spellAction;
@@ -3574,7 +3725,7 @@ Index: rendering/render_form.h
  };
  
  // -------------------------------------------------------------------------
-@@ -558,6 +569,42 @@
+@@ -558,6 +571,42 @@
      ScrollBarWidget( Qt::Orientation orientation, QWidget * parent = 0 ): QScrollBar(orientation, parent) { m_kwp->setIsRedirected( true ); }
  };
  
@@ -3621,7 +3772,7 @@ Index: rendering/securitytooltip.ui
 ===================================================================
 --- rendering/securitytooltip.ui	(revision 0)
 +++ rendering/securitytooltip.ui	(revision 0)
-@@ -0,0 +1,185 @@
+@@ -0,0 +1,176 @@
 +<?xml version="1.0" encoding="UTF-8"?>
 +<ui version="4.0">
 + <class>SecurityToolTip</class>
@@ -3630,26 +3781,13 @@ Index: rendering/securitytooltip.ui
 +   <rect>
 +    <x>0</x>
 +    <y>0</y>
-+    <width>365</width>
++    <width>440</width>
 +    <height>206</height>
 +   </rect>
 +  </property>
 +  <property name="windowTitle">
 +   <string>Form</string>
 +  </property>
-+  <widget class="QPushButton" name="moreInfoButton">
-+   <property name="geometry">
-+    <rect>
-+     <x>212</x>
-+     <y>170</y>
-+     <width>140</width>
-+     <height>25</height>
-+    </rect>
-+   </property>
-+   <property name="text">
-+    <string>More information...</string>
-+   </property>
-+  </widget>
 +  <widget class="QLabel" name="shieldIcon">
 +   <property name="geometry">
 +    <rect>
@@ -3771,7 +3909,11 @@ Index: rendering/securitytooltip.ui
 +    </font>
 +   </property>
 +   <property name="text">
-+    <string>&lt;b&gt;Receiver&lt;/b&gt;</string>
++    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
++&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
++p, li { white-space: pre-wrap; }
++&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
++&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Recipient&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
 +   </property>
 +   <property name="wordWrap">
 +    <bool>true</bool>
@@ -3807,6 +3949,117 @@ Index: rendering/securitytooltip.ui
 + <resources/>
 + <connections/>
 +</ui>
+Index: rendering/render_line.cpp
+===================================================================
+--- rendering/render_line.cpp	(revision 1132763)
++++ rendering/render_line.cpp	(working copy)
+@@ -982,6 +982,15 @@
+     if (object()->style()->htmlHacks() || object()->style()->visibility() != VISIBLE)
+         return;
+ 
++#ifdef KLEO_SUPPORT
++    if (firstChild()->isInlineTextBox()) {
++        InlineTextBox* inlineTextBox = static_cast<InlineTextBox*>(firstChild());
++        if (inlineTextBox->renderText()->element()->isEncrypted()) {
++            return;
++        }
++    }
++#endif
++
+     _tx += m_x;
+     _ty += m_y;
+     RenderStyle* styleToUse = object()->style(m_firstLine);
+Index: rendering/render_box.cpp
+===================================================================
+--- rendering/render_box.cpp	(revision 1132763)
++++ rendering/render_box.cpp	(working copy)
+@@ -46,12 +46,14 @@
+ #include "xml/dom_docimpl.h"
+ #include "xml/dom2_eventsimpl.h"
+ #include "html/html_elementimpl.h"
++#include "../config-khtml.h" // For KLEO_SUPPORT
+ 
+ #include <QWheelEvent>
+ #include <khtmlview.h>
+ #include <kdebug.h>
+ #include <kglobal.h>
+ #include <assert.h>
++#include "render_text.h"
+ 
+ 
+ using namespace DOM;
+@@ -377,7 +379,8 @@
+ 
+ void RenderBox::paintRootBoxDecorations(PaintInfo& paintInfo, int _tx, int _ty)
+ {
+-    //kDebug( 6040 ) << renderName() << "::paintRootBoxDecorations()" << _tx << "/" << _ty;
++//     kDebug( 6040 ) << renderName() << style()->backgroundColor();
++
+     const BackgroundLayer* bgLayer = style()->backgroundLayers();
+     QColor bgColor = style()->backgroundColor();
+     if (document()->isHTMLDocument() && !style()->hasBackground()) {
+@@ -425,13 +428,18 @@
+     QRect cr = paintInfo.r.intersected(QRect(bx, by, bw, bh));
+     paintAllBackgrounds(paintInfo.p, bgColor, bgLayer, cr, bx, by, bw, bh);
+ 
++
++#ifdef KLEO_SUPPORT
++//     kDebug(6040) << "1";
++#endif
++    
+     if(style()->hasBorder())
+         paintBorder( paintInfo.p, _tx, _ty, w, h, style() );
+ }
+ 
+ void RenderBox::paintBoxDecorations(PaintInfo& paintInfo, int _tx, int _ty)
+ {
+-    //kDebug( 6040 ) << renderName() << "::paintDecorations()";
++    kDebug( 6040 ) << renderName() <<  style()->backgroundColor();
+ 
+     if(isRoot())
+         return paintRootBoxDecorations(paintInfo, _tx, _ty);
+@@ -448,7 +456,27 @@
+    if (!isBody() || !document()->isHTMLDocument() || document()->documentElement()->renderer()->style()->hasBackground())
+         paintAllBackgrounds(paintInfo.p, style()->backgroundColor(), style()->backgroundLayers(), cr, _tx, _ty, w, h);
+ 
+-    if(style()->hasBorder()) {
++   bool border = style()->hasBorder(); 
++   if (element() && element()->firstChild() && element()->firstChild()->isTextNode()) {
++        TextImpl* textImpl = static_cast<TextImpl*>(this->element()->firstChild());
++        if (textImpl->isEncrypted()) {
++            QColor borderColor(65,255,64);
++            style()->setBorderBottomColor(borderColor);
++            style()->setBorderTopColor(borderColor);
++            style()->setBorderLeftColor(borderColor);
++            style()->setBorderLeftColor(borderColor);
++            style()->setBorderBottomWidth(2);
++            style()->setBorderTopWidth(2);
++            style()->setBorderLeftWidth(2);
++            style()->setBorderRightWidth(2);
++            style()->setBorderBottomStyle(SOLID);
++            style()->setBorderTopStyle(SOLID);
++            style()->setBorderLeftStyle(SOLID);
++            style()->setBorderRightStyle(SOLID);
++            border = true;
++        }
++    }
++    if(border) {
+         paintBorder(paintInfo.p, _tx, _ty, w, h, style());
+     }
+ }
+@@ -462,6 +490,12 @@
+ 
+ void RenderBox::paintOneBackground(QPainter *p, const QColor& c, const BackgroundLayer* bgLayer, QRect clipr, int _tx, int _ty, int w, int height)
+ {
++    if (element() && element()->firstChild() && element()->firstChild()->isTextNode()) {
++        TextImpl* textImpl = static_cast<TextImpl*>(element()->firstChild());
++        if (textImpl->isEncrypted()) {
++            style()->setBackgroundColor(Qt::white);
++        }
++    }
+     paintBackgroundExtended(p, c, bgLayer, clipr, _tx, _ty, w, height,
+                             borderLeft(), borderRight(), paddingLeft(), paddingRight(),
+                             borderTop(), borderBottom(), paddingTop(), paddingBottom());
 Index: rendering/render_form.cpp
 ===================================================================
 --- rendering/render_form.cpp	(revision 1132763)
@@ -3844,7 +4097,7 @@ Index: rendering/render_form.cpp
 +        sizeAndPosition();
 +        updateUi();
 +        show();
-+        ui.moreInfoButton->setFocus(Qt::PopupFocusReason);
++//         ui.moreInfoButton->setFocus(Qt::PopupFocusReason);
 +    }
 +}
 +
@@ -3853,7 +4106,7 @@ Index: rendering/render_form.cpp
 +    int overallSecurity = 2; // o means low, 1 means medium, 2 means high
 +    ui.messagesLabel->setText(i18n("Messages will be sent encrypted to:"));
 +    GpgME::Key key = m_input->encryptionKey();
-+    ui.nameLabel->setText(key.userID(0).id());
++    ui.nameLabel->setText(key.userID(0).name());
 +    ui.emailLabel->setText(key.userID(0).email());
 +    
 +    QString shortKeyID = key.shortKeyID();
@@ -4164,18 +4417,138 @@ Index: rendering/render_form.cpp
      element()->m_unsubmittedFormChange = true;
  }
  
+Index: rendering/render_object.cpp
+===================================================================
+--- rendering/render_object.cpp	(revision 1132763)
++++ rendering/render_object.cpp	(working copy)
+@@ -1514,6 +1514,8 @@
+ 
+ void RenderObject::paintBorder(QPainter *p, int _tx, int _ty, int w, int h, const RenderStyle* style, bool begin, bool end)
+ {
++    kDebug(6040) << style->borderTopColor() << style->borderRightColor();
++    
+     const QColor& tc = style->borderTopColor();
+     const QColor& bc = style->borderBottomColor();
+     const QColor& lc = style->borderLeftColor();
 Index: rendering/render_text.cpp
 ===================================================================
 --- rendering/render_text.cpp	(revision 1132763)
 +++ rendering/render_text.cpp	(working copy)
-@@ -687,6 +687,7 @@
+@@ -59,6 +59,7 @@
+ #    include <stdlib.h>
+ #  endif
+ #endif
++#include "../config-khtml.h" // For KLEO_SUPPORT
+ 
+ using namespace khtml;
+ using namespace DOM;
+@@ -141,6 +142,7 @@
+ 
+ void InlineTextBox::paint(RenderObject::PaintInfo& i, int tx, int ty)
+ {
++
+     if (object()->isBR() || object()->style()->visibility() != VISIBLE ||
+         m_truncation == cFullTruncation || i.phase == PaintActionOutline)
+         return;
+@@ -154,8 +156,21 @@
+     if ((xPos >= i.r.x() + i.r.width()) || (xPos + w <= i.r.x()))
+         return;
+ 
++
+     // Set our font.
+     RenderStyle* styleToUse = object()->style(m_firstLine);
++#ifdef KLEO_SUPPORT
++    // Check if it needs to be secure
++    bool security = false;
++//     kDebug(6040) << "is encrypted?? " << renderText() << renderText()->element()
++//         << renderText()->element()->isEncrypted() << renderText()->string()->string();
++    if (renderText() && renderText()->element() && renderText()->element()->isEncrypted()) {
++        kDebug(6040) << "is encrypted";
++        security = true;
++        styleToUse->setTextShadow(0);
++        styleToUse->setColor(Qt::black);
++    }
++#endif
+     int d = styleToUse->textDecorationsInEffect();
+     if (styleToUse->font() != i.p->font())
+         i.p->setFont(styleToUse->font());
+@@ -679,14 +694,14 @@
+     m_isSimpleText = false;
+     m_firstTextBox = m_lastTextBox = 0;
+ 
+-#ifdef DEBUG_LAYOUT
+-    const QString cstr = QString::fromRawData(str->s, str->l);
+-    kDebug( 6040 ) << "RenderText ctr( "<< cstr.length() << " )  '" << cstr << "'";
+-#endif
++    if (str) {
++        kDebug(6040) << str->string();
++    }
+ }
  
  void RenderText::setStyle(RenderStyle *_style)
  {
-+    kDebug();
++    kDebug(6040);
      if ( style() != _style ) {
          bool changedText = ((!style() && ( _style->textTransform() != TTNONE ||
                                             !_style->preserveLF() || !_style->preserveWS() )) ||
+@@ -698,8 +713,10 @@
+ 
+         if (!isBR() && changedText) {
+             DOM::DOMStringImpl* textToTransform = originalString();
+-            if (textToTransform)
++            if (textToTransform) {
++                kDebug(6040) << "setText";
+                 setText(textToTransform, true);
++            }
+         }
+     }
+ }
+@@ -804,7 +821,11 @@
+ 
+ DOM::DOMStringImpl* RenderText::originalString() const
+ {
++#ifdef KLEO_SUPPORT
++    return element() ? element()->plainTextvalue() : 0;
++#else
+     return element() ? element()->string() : 0;
++#endif
+ }
+ 
+ const InlineTextBox * RenderText::findInlineTextBox( int offset, int &pos, bool checkFirstLetter ) const
+@@ -1381,6 +1402,7 @@
+ 
+ void RenderText::setText(DOMStringImpl *text, bool force)
+ {
++    kDebug(6040) << text->string();
+     if( !force && str == text ) return;
+ 
+     DOMStringImpl *oldstr = str;
+Index: rendering/render_block.cpp
+===================================================================
+--- rendering/render_block.cpp	(revision 1132763)
++++ rendering/render_block.cpp	(working copy)
+@@ -1775,10 +1775,20 @@
+     // If we're a repositioned run-in, don't paint background/borders.
+     bool inlineFlow = isInlineFlow();
+ 
++#ifdef KLEO_SUPPORT
++    bool forcePaintBackground = false;
++    if (element() && element()->firstChild() && element()->firstChild()->isTextNode()) {
++        TextImpl* textImpl = static_cast<TextImpl*>(this->element()->firstChild());
++        if (textImpl->isEncrypted()) {
++            forcePaintBackground = true;
++        }
++    }
++#endif
++
+     // 1. paint background, borders etc
+     if (!inlineFlow &&
+         (pI.phase == PaintActionElementBackground || pI.phase == PaintActionChildBackground ) &&
+-         shouldPaintBackgroundOrBorder() && style()->visibility() == VISIBLE)
++         (forcePaintBackground || shouldPaintBackgroundOrBorder() && style()->visibility() == VISIBLE))
+         paintBoxDecorations(pI, _tx, _ty);
+ 
+     if ( pI.phase == PaintActionElementBackground )
 Index: CMakeLists.txt
 ===================================================================
 --- CMakeLists.txt	(revision 1132763)
@@ -4209,16 +4582,17 @@ Index: CMakeLists.txt
  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  ${KDE4_ENABLE_EXCEPTIONS}")
  
  configure_file(config-khtml.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-khtml.h )
-@@ -350,6 +358,8 @@
+@@ -350,6 +358,9 @@
    ${CMAKE_SOURCE_DIR}/khtml/rendering/media_controls.cpp
  )
  
 +kde4_add_ui_files(khtmlrender_STAT_SRCS ${CMAKE_SOURCE_DIR}/khtml/rendering/securitytooltip.ui)
++kde4_add_ui_files(khtmlrender_STAT_SRCS ${CMAKE_SOURCE_DIR}/khtml/rendering/encryptiondetails.ui)
 +
  # khtml/css/Makefile.am: khtmlcss
  
  set(khtmlcss_STAT_SRCS
-@@ -437,6 +447,7 @@
+@@ -437,6 +448,7 @@
  add_subdirectory( pics )
  add_subdirectory( ecma )
  
@@ -4226,7 +4600,7 @@ Index: CMakeLists.txt
  include_directories( ${KDE4_PHONON_INCLUDES} ${KDE4_KPARTS_INCLUDES} )
  include_directories( ${CMAKE_BINARY_DIR}/kio/kssl )
  include_directories( ${KDE4_KJS_INCLUDES} ${CMAKE_SOURCE_DIR}/kimgio ${CMAKE_SOURCE_DIR}/kio/kssl ${CMAKE_SOURCE_DIR}/interfaces ${CMAKE_SOURCE_DIR}/interfaces/kregexpeditor)
-@@ -534,8 +545,8 @@
+@@ -534,8 +546,8 @@
  
  kde4_add_library(khtml SHARED ${khtml_LIB_SRCS})
  
@@ -4249,15 +4623,34 @@ Index: xml/dom_textimpl.cpp
  #include <dom/dom_exception.h>
  #include <css/cssstyleselector.h>
  
-@@ -52,6 +53,7 @@
+@@ -36,6 +37,17 @@
+ 
+ #include <kdebug.h>
+ 
++#ifdef KLEO_SUPPORT
++#include <kleo/cryptobackendfactory.h>
++#include <kleo/cryptobackend.h>
++#include <kleo/decryptjob.h>
++
++#include <gpgme++/key.h>
++#include <gpgme++/decryptionresult.h>
++#include "../html/html_blockimpl.h"
++#include "../khtml_ext.h"
++#endif
++
+ // for SVG
+ #include <rendering/RenderSVGInlineText.h>
+ 
+@@ -52,6 +64,8 @@
  {
      str = _text ? _text : new DOMStringImpl((QChar*)0, 0);
      str->ref();
-+    kDebug(6035) << DOMString(str).string();
++    m_plainTextValue = 0;
++    kDebug(6035) << str->string();
  }
  
  CharacterDataImpl::~CharacterDataImpl()
-@@ -67,6 +69,13 @@
+@@ -67,6 +81,13 @@
          return;
      }
  
@@ -4271,7 +4664,7 @@ Index: xml/dom_textimpl.cpp
      if(str == _data.impl) return; // ### fire DOMCharacterDataModified if modified?
      DOMStringImpl *oldStr = str;
      str = _data.impl;
-@@ -74,7 +83,11 @@
+@@ -74,7 +95,11 @@
          str = new DOMStringImpl((QChar*)0, 0);
      str->ref();
      if (m_render)
@@ -4283,7 +4676,7 @@ Index: xml/dom_textimpl.cpp
      setChanged(true);
  
      dispatchModifiedEvent(oldStr);
-@@ -109,12 +122,23 @@
+@@ -109,12 +134,23 @@
          return;
      }
  
@@ -4307,7 +4700,7 @@ Index: xml/dom_textimpl.cpp
      setChanged(true);
  
      dispatchModifiedEvent(oldStr);
-@@ -133,7 +157,11 @@
+@@ -133,7 +169,11 @@
      str->ref();
      str->insert(arg.impl, offset);
      if (m_render)
@@ -4319,7 +4712,7 @@ Index: xml/dom_textimpl.cpp
      setChanged(true);
  
      dispatchModifiedEvent(oldStr);
-@@ -155,7 +183,11 @@
+@@ -155,7 +195,11 @@
      str->ref();
      str->remove(offset,count);
      if (m_render)
@@ -4331,7 +4724,7 @@ Index: xml/dom_textimpl.cpp
      setChanged(true);
  
      dispatchModifiedEvent(oldStr);
-@@ -184,7 +216,11 @@
+@@ -184,7 +228,11 @@
      str->remove(offset,realCount);
      str->insert(arg.impl, offset);
      if (m_render)
@@ -4343,7 +4736,7 @@ Index: xml/dom_textimpl.cpp
      setChanged(true);
  
      dispatchModifiedEvent(oldStr);
-@@ -248,8 +284,32 @@
+@@ -248,8 +296,58 @@
          exceptioncode = DOMException::NO_MODIFICATION_ALLOWED_ERR;
          return;
      }
@@ -4357,6 +4750,32 @@ Index: xml/dom_textimpl.cpp
  }
  
 +#ifdef KLEO_SUPPORT
++
++void CharacterDataImpl::decrypt()
++{
++    kDebug(6035);
++    if (isEncrypted()) {
++        kDebug(6035) << "text encrypted";
++        const Kleo::CryptoBackend::Protocol * const  backend =
++                Kleo::CryptoBackendFactory::instance()->protocol(GpgME::OpenPGP);
++        std::auto_ptr<Kleo::DecryptJob> decryptJob(backend->decryptJob());
++        Q_ASSERT(decryptJob.get());
++
++        QByteArray cipherText = str->string().toAscii();
++        QByteArray plainText;
++        GpgME::DecryptionResult res = decryptJob->exec(cipherText, plainText);
++
++        if(plainText.isEmpty()) {
++            kDebug(6035) << "Couldn't decrypt the message";
++            return;
++        }
++        m_plainTextValue = new DOMStringImpl(plainText.constData(), plainText.length());
++        kDebug(6035) << "decrypted text: " << m_plainTextValue->string();
++    } else {
++        kDebug() << "NOT encrypted";
++    }
++}
++
 +bool CharacterDataImpl::isEncrypted() const
 +{
 +    return parentNode() && parentNode()->id() == ID_DIV &&
@@ -4365,9 +4784,9 @@ Index: xml/dom_textimpl.cpp
 +
 +DOMStringImpl *CharacterDataImpl::plainTextvalue() const
 +{
-+    if (isEncrypted()) {
-+        // TODO
-+        kDebug() << "const BINGOOOOOOOOOOOOOOOOOOO";
++    kDebug();
++    if (isEncrypted() && m_plainTextValue) {
++        return m_plainTextValue;
 +    }
 +    return str;
 +}
@@ -4376,7 +4795,7 @@ Index: xml/dom_textimpl.cpp
  long CharacterDataImpl::maxOffset() const
  {
    RenderText *r = static_cast<RenderText *>(renderer());
-@@ -340,6 +400,13 @@
+@@ -340,6 +438,13 @@
          return 0;
      }
  
@@ -4390,7 +4809,7 @@ Index: xml/dom_textimpl.cpp
      DOMStringImpl *oldStr = str;
      TextImpl *newText = createNew(str->substring(offset,str->l-offset));
      str = str->copy();
-@@ -355,7 +422,11 @@
+@@ -355,7 +460,11 @@
          return 0;
  
      if (m_render)
@@ -4403,7 +4822,7 @@ Index: xml/dom_textimpl.cpp
      setChanged(true);
      return newText;
  }
-@@ -517,7 +588,11 @@
+@@ -517,7 +626,11 @@
      // for SVG
      if (parentNode()->isSVGElement())
          return new (arena) WebCore::RenderSVGInlineText(this, str);
@@ -4416,7 +4835,7 @@ Index: xml/dom_textimpl.cpp
  }
  
  void TextImpl::attach()
-@@ -544,7 +619,12 @@
+@@ -544,7 +657,12 @@
  	    m_render->setStyle(parentNode()->renderer()->style());
      }
      if ( changed() && m_render && m_render->isText() )
@@ -4434,7 +4853,7 @@ Index: xml/dom_textimpl.h
 ===================================================================
 --- xml/dom_textimpl.h	(revision 1132763)
 +++ xml/dom_textimpl.h	(working copy)
-@@ -27,7 +27,12 @@
+@@ -27,16 +27,40 @@
  
  #include "xml/dom_nodeimpl.h"
  #include "dom/dom_string.h"
@@ -4444,17 +4863,45 @@ Index: xml/dom_textimpl.h
 +#include <gpgme++/decryptionresult.h>
 +#endif
 +
++namespace khtml {
++    class RenderText;
++    class InlineTextBox;
++}
++
++class KHTMLPopupGUIClient;
++
  namespace DOM {
- 
+-
      class DocumentImpl;
-@@ -81,6 +86,14 @@
+     class CharacterData;
+     class Text;
++    class HTMLDivElementImpl;
+ 
+ class CharacterDataImpl : public NodeImpl
+ {
+ public:
++#ifdef KLEO_SUPPORT
++    // For decrypt()
++    friend class HTMLDivElementImpl;
++    // For plainTextvalue()
++    friend class khtml::RenderText;
++    friend class khtml::InlineTextBox;
++    friend class KHTMLPopupGUIClient;
++
++    bool isEncrypted() const;
++    DOMStringImpl *plainTextvalue() const;
++    GpgME::DecryptionResult decryptionResult() { return m_decryptionResult; }
++#endif
+     CharacterDataImpl(DocumentImpl *doc, DOMStringImpl* _text);
+ 
+     virtual ~CharacterDataImpl();
+@@ -81,6 +105,13 @@
      DOMStringImpl *str;
  
      void dispatchModifiedEvent(DOMStringImpl *prevValue);
 +#ifdef KLEO_SUPPORT
 +    // Should only used for rendering purposes!
-+    DOMStringImpl *plainTextvalue() const;
-+    bool isEncrypted() const;
++    void decrypt();
 +
 +    DOMStringImpl *m_plainTextValue;
 +    GpgME::DecryptionResult m_decryptionResult;
@@ -4462,7 +4909,7 @@ Index: xml/dom_textimpl.h
  };
  
  // ----------------------------------------------------------------------------
-@@ -111,7 +124,8 @@
+@@ -111,7 +142,8 @@
  {
  public:
      TextImpl(DocumentImpl *impl, DOMStringImpl* _text)
@@ -4472,7 +4919,7 @@ Index: xml/dom_textimpl.h
      TextImpl(DocumentImpl *impl)
          : CharacterDataImpl(impl, 0) {}
  
-@@ -148,6 +162,7 @@
+@@ -148,6 +180,7 @@
       *  @return An html escaped version of the substring.
       */
      DOMString toString(long long startOffset, long long endOffset) const;

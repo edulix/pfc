@@ -1,29 +1,113 @@
 \chapter{Comparación con otras alternativas}\label{alternativas}
+\section{Aplicaciones de Escritorio}\label{aplicacionesdeescritorio}
 
+Nuestro objetivo más básico es lograr la comunicación de forma segura entre un mínimo de dos personas mediante Internet, la forma actualmente de realizar esto es mediante el software actualmente disponible que permite realizar dicha tarea.
 
+\subsection{Correo electrónico}\label{appescritorio_correoelectronico}
 
+El medio de comunicación que permite cifrado punto a punto más típicamente usado es el correo electrónico. El sistema de correo electrónico funciona mediante un esquema distribuido de cliente servidor, donde cada cliente se conecta a un servidor, y luego los servidores se conectan entre ellos, de tal manera que un cliente de un servidor puede mandar un mensaje al cliente de otro servidor. Un sistema de cifrado punto a punto establece que nadie más que los extremos comunicantes, en este caso los dos clientes, puedan leer el texto en claro. Y el sistema de seguridad más extendido en este medio es PGP/GnuPG.
 
+La inmensa mayoría de clientes de correo electrónico de escritorio existentes tienen soporte de cifrado y firma mediante PGP: KMail de KDE, Thunderbird mediante el plugin Enigmail de Mozilla, Evolution de Gnome, Microsoft Outlook mediante GPG4Win, o Mail de Mac OS X mediante Mac GPG. Se pueden ver adjunto algunas capturas en las figuras que siguen.
 
+\figura{0.8}{img/kmail-mail-signed-encrypted}{Leyendo un correo firmado y cifrado en KDE con KMail}{kmail}{}
+\figura{0.6}{img/enigmail-encrypted-mail}{Leyendo un mensaje firmado en Thunderbird con Enigmail}{thunderbird-enigmail}{}
+\figura{1.0}{img/evolution-gpg}{Leyendo un mensaje mal firmado con Evolution}{evolution-gpg}{}
+\figura{0.8}{img/macosx-gpg-signed-mail}{Leyendo un correo firmado en Mac OS X Mail}{macosxmail}{}
 
+Como denominador común de todas estas diferentes aplicaciones destacar que permiten ver de una u otra manera el estado del mensaje que se recibe: si está firmado o cifrado, y si este firmado o cifrado ha sido realizado de forma correcta. En caso de que no sea así, se muestra un mensaje de información. Destacar también el uso de un código de colores (rojo para errores o problemas, azul y/o verde para mensajes firmados y cifrados).
 
+Las aplicaciones de escritorio de correo electrónico tienen la ventaja de que están dedicadas exclusivamente a este objetivo y por tanto la interfaz de seguridad respecto al cifrado y firmado de cara al usuario siempre es igual y totalmente reconocible. Eso es algo que intentaremos replicar mediante ciertas medidas de seguridad en nuestra implementación. Además estas aplicaciones de escritorio no tienen el problema de seguridad sobre si el código de cifrado y descifrado que utilizan es legítimo porque dicho código está implementado no por el servidor al cual le mandamos el mensaje sino por la propia aplicación específica de correo electrónico. Por supuesto si el sistema ha sido comprometido mediante un troyano o infectado mediante un virus, la seguridad se puede ver afectada, pero ese es un problema que la solución que propondremos tampoco solucionará y que es el Sistema Operativo quien debe hacerlo.
 
+Probablemente la única desventaja de las aplicaciones de escritorio de correo electrónico según observa el autor es que resulta necesario tenerlas instaladas en el sistema. El objetivo que nosotros nos hemos marcado no es sólo conseguir que el usuario pueda transmitir y recibir mensajes de forma segura por Internet, sino que lo haga desde su navegador directamente mediante una página web, y eso es algo que evidentemente las aplicaciones de escritorio por definición no pueden conseguir.
 
+\subsection{Mensajería Instantánea}\label{appescritorio_im}
 
+Como alternativa al correo electrónico se presenta la mensajería instantánea, que es parecida al email pero con la salvedad de que la naturaleza  de la mensajería instantánea es de mensajes por lo general mucho más cortos en una conversación mucho más fluida por realizarse en vivo, parecido a una charla entre los interlocutores, pero escrita.
 
+No obstante en últimos términos es lo mismo: un interlocutor envía un mensaje al otro, y viceversa. Es por esto que también en la mensajería instantánea se ha implantado el sistema de cifrado punto a punto GPG. Aplicaciones como Kopete, PSI, Miranda o Pidgin lo soportan.
 
+Recodemos que en un sistema criptográfico de clave pública como PGP tenemos dos claves, una pública y otra privada, de tal suerte que si se cifra un mensaje con una de ellas, sólo se puede descifrar el mensaje con la otra. Cuando un interlocutor A envía un mensaje cifrado a otro interlocutor B, utiliza la clave pública de B para cifrar el mensaje, y B usa su clave privada para descifrarlo. Así mismo, cuando B envía un mensaje firmado, firma el mensaje con su clave privada y A comprueba la firma con su clave pública. Y cada vez que un interlocutor utiliza su clave privada PGP, el interlocutor debe introducir la frase de paso con la que PGP almacena de forma cifrada la clave privada. Así, cada vez que se envía un mensaje firmado o se recibe un mensaje cifrado, ha de introducirse dicha frase.
 
-	
+Debido a que se suelen enviar y recibir muchos mensajes a la vez en una conversación de IM (Mensajería Instantánea), para no tener que andar introduciendo la frase de paso todo el tiempo se suele meter en una caché en RAM durante un tiempo, de la forma más segura posible. Esto no lo suele hacer la aplicación de mensajería en sí, sino la librería que ésta utiliza que se encarga de cifrar, descifrar y en general todo el tema criptográfico. Esto ocurre por lo general también en los clientes de correo y como veremos, también ocurrirá en la extensión HTML que se implementa en este proyecto.
 
+GPG es un sistema de seguridad muy robusto que sin embargo algunos pensaron que se tornaba algo aparatoso frente a la volatilidad y asociada sencillez de una aplicación de IM. Esa es una de las razones por las que nació OTR (Off The Record). OTR es parecido en el fondo a GPG, en cuanto a que mezcla un sistema de cifrado simétrico y asimétrico para proporcionar seguridad punto con cifrado y autenticación. Pero la principal motivación de su desarrollo fue la de poder proporcionar a los participantes de una conversación la negación plausible de una conversación a la par de mantener las conversaciones confidenciales, como en una conversación privada en la vida real.
 
+También existen muchos clientes que incluyen soporte de OTR o es posible conseguirlo mediante plugins, como Kopete, Pidgin o Adium. Por lo general la interfaz de usuario para el soporte de OTR o de GPG en los clientes de IM suele ser parecida a la hora de realizar una conversación. No obstante, mientras normalmente la gestión de las claves de GPG se suele realizar en un programa dedicada aparte, en OTR todo eso suele gestionarlo el software de IM en cuestión. Esta gestión incluye el listado de claves, creación de pares de claves pública/privada, adición de claves de conocidos, y eliminación de claves antiguas o inválidas.
 
+\figura{0.8}{img/kopete-otr-chat}{Chateando mediante OTR con Kopete}{kopete-otr-chat}{}
+\figura{0.8}{img/otr-adium-manage-keys}{Manejando las claves OTR con Adium}{otr-adium-manage-keys}{}
+\figura{1.0}{img/adium-otr-example}{Conversación segura en Adium con OTR mostrando lo que el usuario ve y lo que realmente se transmite}{adium-otr-example}{}
+\figura{0.6}{img/psi-gpg}{Conversación cifrada con GPG en Adium en PSI}{psi-gpg}{}
 
+Podemos observar algunas capturas de pantalla de clientes de mensajería instantánea para ver qué tipo de interfaz se muestra al usuario a la hora de chatear y de gestionar las claves.
 
+La conclusión sobre esta alternativa, que es la de utilizar un cliente de mensajería instantánea con soporte de algún sistema de seguridad punto a punto como GPG u OTR, es que el sistema funciona y es fácil de usar, pero sin embargo ocurre igual que en el apartado anterior: el objetivo que nosotros nos hemos marcado no es sólo conseguir que el usuario pueda transmitir y recibir mensajes de forma segura por Internet, sino que lo haga desde su navegador directamente mediante una página web, y eso es algo que evidentemente las aplicaciones de escritorio por definición no pueden conseguir.
 
+\section{Aplicaciones web}\label{aplicacionesweb}
+\subsection{HTTPS y SSL}\label{sslweb}
 
+En cuanto a conseguir mantener una conversación segura con cierto interlocutor, existe básicamente un único método estándar para conseguirlo en las páginas web y es la utilización de HTTPS y SSL. La problemático en esto estriba en que ese cierto interlocutor con el que se mantiene una conversación segura sólo puede ser el servidor, y no aquel con el que queremos conversar realmente debido a que SSL (o TLS que es su sucesor) es un protocolo de seguridad en la capa de transporte.
 
-	
-	 
+HTTPS utiliza un sistema de certificados de tal manera que se puede autenticar que la página web a la que estamos accediendo no ha sido modificada por nadie y por tanto su contenido es el que sirvió el servidor y no otro. Se utiliza un esquema de árbol de confianza análogo al utilizado en PGP, con autoridades certificadoras como Verisign cuyas claves públicas suelen venir instaladas en el navegador web, de tal manera que si el sitio mipaginaweb.com tiene un certificado firmado por Verisign, nuestro navegador lo mostrará como seguro. Además la comunicación no suele ir solo autenticada sino que en la inmensa mayoría de los casos también va cifrada. Es un esquema en el que la seguridad la recibe más el cliente que el servidor puesto que el cliente conoce la clave pública del servidor pero no al revés, de manera que las conexiones al servidor son ``anónimas'' por no estar autenticadas.
 
+No obstante como decíamos antes si nuestra comunicación pasa por un servidor intermediario, como ocurre en todas las páginas web, y lo que estamos es comunicándonos mediante este servidor con otra persona, HTTPS (mediante SSL/TLS) nos asegura que el servidor recibe los mensajes en claro y los procesa así. Servicios web que nos permiten mandarnos mensajes entre personas existen muchos. GMail por ejemplo es un servicio de email con una interfaz web que nos permite, en lo básico, realizar las mismas funciones que cualquier cliente de escritorio de correo electrónico. No obstante no tiene soporte de GPG, y por tanto los mensajes se mandan y reciben siempre en claro por el servidor, y de hecho su modelo de negocio se basa en poner publicidad contextual al correo que se esté leyendo. Servicios parecidos a este son Yahoo, Hotmail o Linuxmail.
 
+Pero las páginas web no sólo a comunicación mediante correos. También es posible chatear mediante sitios web, y por ejemplo GMail facilita esto aunando en una sola web ambas características, cliente de email y de IM. Es interesante hacer notar cómo servicios web son en realidad aplicaciones web que proveen, y no servicios únicamente accesibles mediante web. Por ejemplo GMail provee acceso al correo electrónico mediante su interfaz web, pero también es posible acceder a la misma cuenta mediante cualquier otro cliente de correo electrónico de escritorio (o web, porqué no).
 
+\figura{0.8}{img/gmail}{Chateando mediante GMail por https}{gmail}{}
+
+También existen servicios cuya experiencia es totalmente web y no permiten (o tradicinalmente no han permitido) ningún método de acceso más que web, como por ejemplo Tuenti, o hasta hace poco, Facebook. Estos servicios fidelizan sus usuarios mediante la trampa de no utilizar ningún tipo de estándar para poder acceder a los datos, que son retenidos por los servicios web. En esto reside el más preocupante problema respecto a la libertad de los usuarios a la hora de utilizar servicios web.
+
+No obstante incluso si se permite el acceso al servicio mediante aplicaciones de terceros al utilizar una API y un protocolo estándar como GMail para el correo POP, IMAP y SMTP y XMPP para la mensajería instantánea, los usuarios pierden seguridad al utilizar un servicio web. Este servicio simplifica la vida del usuario (o al administrador del sistema) al no tener que instalar y mantener actualizado, configurado y libre de virus la aplicación porque es una web, pero el usuario está cediendo igualmente sus datos debido a estas facilidades a empresas con cada vez mayor cantidad de datos, mayor capacidad de analizarlos y estructurarlos.
+
+La facilidad que implica que el usuario no tenga que hacer las veces de administrador configurando y manteniendo su cliente de correo, o incluso que el administrador tampoco tenga que hacerlo, es muy grande, y eso implica un problema de seguridad igual de grande y creciente. Es una opción muy golosa que sin embargo deja de lado el posible uso de seguridad. Recientemente han aparecido varias administraciones que empiezan a usar directamente GMail como sistema completo integrado de correo electrónico, como la ciudad de Los Ángeles en Estados Unidos, donde ahora 30.000 empleados utilizarán el sistema de email de Google \cite{gmail-losangeles}.
+
+\subsection{Hushmail}\label{hushmail}
+
+Hushmail responde a las inquietudes de seguridad de algunos respecto a los servicios web de correo electrónico y mensajería instantánea proveyendo cifrado PGP en el suyo. Eso es precisamente lo que el presente proyecto de fin de carrera intenta permitir, así que ¿cómo es que Hushmail parece ya haberlo conseguido? El problema de Hushmail es que los navegadores web actuales no proveen de ningún sistema de cifrado estandarizado tipo PGPG así que Hushmail es quien debe implementarlo. Hushmail cuenta con dos implementaciones: una en Java, y otra directamente en el servidor. En la primera, es un plugin Java que ellos desarrollan el que realiza el cifrado en el cliente. El problema de seguridad de esto es que el cliente debe confiar en que ese plugin java no envíe el texto en claro al servidor. En el segundo caso, se envía la clave de paso al servidor que es quien se encarga de cifrar y descifrar. 
+
+Por tanto en ambos casos estamos confiando en los servidores de Hushmail para cifrar. Hushmail es sin embargo el sistema de correo electrónico web más seguro que existía y hasta 2007 la mayoría de las críticas le eran favorables. No obstante en 2007 salieron varios casos en los que la NSA había obligado por imperativo legal a Hushmail a que le dejase acceder al texto en claro de varios de sus usuarios. Y es que el problema consiste en que por muchas buenas intenciones que tenga Hushmail al mantener un sistema seguro de correo electrónico, si es posible de alguna manera (y como hemos visto, puesto que estamos confiando en el servidor, si este es comprometido, se puede) acceder al texto en claro, se hará tarde o temprano. Las razones pueden ser diversas, pero se hará: bien porque los administradores del servidor no sea de fiar, bien porque el servidor sea comprometido, o porque las autoridades lo requieran.  La cadena de seguridad es tan débil como su eslabón más débil. Y si sólo confiamos en el destinatario, no debemos de confiar en que el servidor nos provea de un sistema criptográfico seguro porque rompe la cadena de confianza.
+
+\figura{1.0}{img/hushmail}{Interfaz de la vista principal del cliente web de correo electrónico de Hushmail, utilizando una cuenta gratuita de 2MB de capacidad}{hushmail}{}
+
+La solución evidentemente es implementar el sistema de seguridad en el navegador, igual que con SSL y HTTPS, de tal manera que no confiemos en el sitio web sino en el navegador web. ¿Porqué no se ha intentado estandarizar un sistema de cifrado web para el navegador de estas características hasta ahora? Lo cierto es que la seguridad en las aplicaciones web es muchas veces, en el mejor de los casos, un añadido y no una parte fundamental de las bases del diseño. La gran excepción aquí son por supuesto aquellas operaciones de comercio electrónico, como la compra o la administración de las cuentas mediante banca electrónica.
+
+Pero en ambos casos esa seguridad no implica privacidad de comunicaciones entre usuarios sino de un usuario con una entidad superior. Sin embargo la revolución de Internet es que es un medio de comunicación no al uso, no es un medio de un sólo sentido como lo han sido tradicionalmente (y siguen siéndolo mayormente) la radio, televisión o el periódico que es de uno a muchos, sino un medio de mucho a muchos, de iguales a iguales. Y la seguridad y privacidad en esa comunicación entre iguales hasta ahora ha sido siempre lo que los ingleses denominan un ``afterthought'', es decir algo secundario y no fundalmental.
+
+Otro de los pilares de Internet es, queramos admitirlo o no, el ``todo gratis''. Los servicios gratuitos que se financian mediante la publicidad triunfan y el gigante americano Google es una buena prueba de ello. Y es que los sitios gratuitos necesitan mantenerse de alguna manera. La publicidad contextual tiene muchas ventajas porque aumenta las probabilidades de que el usuario acceda a esa publicidad puesto que está relacionada con aquello en que en ese momento anda interesado. Sin embargo ese tipo de publicidad no sería posible respecto a un mensaje cifrado al cual el servidor no puede acceder. Eso conlleva que servicios como Hushmail apenas proliferen, y que además no sean apenas conocidos porque sólo ofertan o pueden permitirse ofertar servicios gratuitos muy limitados (una cuenta de correo de 2MB y sin acceso POP ni IMAP). El negocio para servicios web que venden seguridad no parece pasar por esa gratuidad que tanto ``vende'', sino en ofrecer el servicio con su mantenimiento incluido a empresas y administraciones.
+
+\section{XML Signature y XML Encryption}\label{xmlsignature}
+
+Estos dos son recomendaciones del W3C de firmado y cifrado de las comunicaciones mediante XML. Involucran una serie de elementos XML como ``KeyInfo'', usado por ambos, que aparecen como hijo de los elementos SignedInfo, EncryptedData, o EncryptedKey y provee información a undestinatario sobre el material de claves que usar en la validación de una firma o descifrar datos cifrados. El elemento KeyInfo es opcional: puede ser adjuntado al mensaje, o entregado mediante un canal seguro.
+
+Este conjunto de tecnologías se engloban en lo que viene a ser llamado como ``xmlsec'', acrónimo de ``XML Security''. No obstante por ejemplo no es actualmente compatible con otros métodos de cifrado bastante extendidos en los ámbitos de comunicaciones tipo correo electrónico o IM, como PGP u OTR, puesto que son más bien comparable a ellos en el mismo nivel y no como una capa que va por encima. La elección se encuentra más bien entre PGP/OTR y xmlsec.
+
+Un sencillo y simplificado ejemplo de código XML que incluye XML Encryption podría ser el siguiente:
+
+% \begin{verbatim}
+% <?xml version='1.0' ?>  
+%  <PurchaseOrder>
+%     <Order>
+%         <Item>book</Item>
+%         <Id>123-958-74598</Id>
+%         <Quantity>12</Quantity>
+%     </Order>
+%     <Payment>
+%         <CardId>
+%             <EncryptedData Type='http://www.w3.org/2001/04/xmlenc#Content'
+%                                 xmlns='http://www.w3.org/2001/04/xmlenc#'>
+%                 <CipherData>
+%                     <CipherValue>A23B45C564587</CipherValue>
+%                 </CipherData>
+%             </EncryptedData>
+%         </CardId>
+%         <CardName>visa</CardName>
+%         <ValidDate>12-10-2004</ValidDate>
+%     </Payment>
+% </PurchaseOrder>
+% \end{verbatim}
+
+También sería posible extender xmlsig (XML Signature) y xmlenc (XML Encryption) para soportar PGP u OTR, pero esto aumentaría aun más la complejidad que conlleva el uso de xmlsec. Existen críticas que atacan a la seguridad de XML en general y a la idoneidad de utilizar la canonización XML en particular como un front end para el firmado y cifrado de datos XML debido a su complejidad, requerimiento inherente de su procesamiento, y bajo rendimiento \cite{critica_xmlsec}.
+
+Es cierto que podría haberse utilizado xmlsec como método de cifrado y firmado en este proyecto. La velocidad de procesamiento no era un requisito indispensable para el autor, no obstante debido a que se trata de una prueba de concepto que requería la máxima simplicidad, por lo que se optó por no utilizar xmlsec.
 

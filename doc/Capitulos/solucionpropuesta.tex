@@ -1,0 +1,95 @@
+\chapter{Solución propuesta}\label{solucionpropuesta}
+
+En esta sección se explica cómo fue el proceso por el cual se llegó a decidir la solución elegida para solventar el problema planteado en las secciones anteriores. En la primera sección se explica algo la historia que llevó al autor a plantearse el problema en primer lugar, y la primera solución que se barajó. Gran parte de esa historia se puede leer en el blog del autor \cite{web-encryption-framework}.
+
+En la siguiente sección, se explica cual es la aproximación que finalmente se siguió ante el problema. 
+
+\section{Algo de Historia y primera solución barajada}\label{posiblessoluciones}
+
+Ya era de noche en una tarde a finales del mes enero del año 2009, cuando Daniel García Moreno (alias ``danigm'') que es un muy buen amigo del autor y el autor iban hablando de sus cosas de vuelta de la facultad. De las siguientes cosas que cuento íbamos hablando: Danigm participaba ese año en el Concurso Universitario de Software Libre organizado por cierto por personas afines a ambos, todos miembros de la asociación universitaria de la Universidad de Sevilla SUGUS GNU/Linux. El proyecto con el que danigm participaba es GECO (GEstor de COntraseñas), que permite administrar tus contraseñas online  de manera que entre otras cosas puedes sincronizarlas entre diferentes ordenadores.
+
+Por supuesto, el almacenar todas tus contraseñas de una forma centralizada y para más inri accesible mediante Internet debe realizarse de forma muy segura si no quieres llevarte disgustos. La conexión con el servidor debe ser segura (SSL) para que nadie más pueda conocer tus contraseñas. Pero aun así es totalmente legítimo preguntarse ¿vas a almacenar las contraseñas en claro? De ninguna manera, eso es demasiado arriesgado. Personalmente no confiaría todas mis contraseñas ni a mejor amigo, e incluso si así fuese, ¿qué ocurre si su máquina resulta comprometida? Si alguien le roba el fichero de contraseñas en claro, seremos totalmente vulnerables.
+
+El caso es que GECO está diseñado para tener tanto un cliente web como un cliente de escritorio. El problema aquí es que los navegadores web no proveen un framework estándar para cifrar y descifrar datos en el cliente. Tienes SSL, pero éste sólo cifra las comunicaciones entre el navegador y el servidor, y eso no resuelve el problema.
+
+Así pues ¿qué es lo que mi amigo danigm resolvió hacer? Se pondría a utilizar Slow AES, una implementación software libre de AES realizada tanto en Javascript como en Python. Hay que tener en cuanta que no sólo necesita ser capaz de cifrar y descifrar texto en el cliente web mediante Javascript, sino que también debe asegurarse que cuando utiliza el cliente que ha desarrolado en Python para el escritorio Gnome, exactamente la misma implementación del algoritmo AES es utilizada, de manera que aquella contraseña que sea cifrada utilizando el cliente web pueda ser descifrada en el cliente de escritorio y viceversa. Desde luego lo último que querría que ocurriese es que uno de sus felices usuarios no pudiese recuperar la contraseña que había confiado a GECO debido a incompatibilidad entre clientes, o incluso peor, que la contraseña se perdiese.
+
+La penalización de esto es que dicha implementación de AES es, como su propio nombre indica, lenta. Pero eso no es un gran problema a la hora de realizar cifrado de pequeñas cadenas de texto como suelen ser las contraseñas. No obstante toda esta problemática hizo encenderse una bombilla dentro de mi cabeza. ME di cuenta de que esta aplicación era tan sólo un ejemplo de lo que iba a venir en el futuro. Porque las aplicaciones web están convirtiéndose cada vez más en algo más común en nuestra vida diaria en Internet. Por ejemplo está GMail, que es una maravillosa pieza de software por la sencilla, útil e intuitiva interfaz que ofrece al usuario, y de hecho por entonces estaba tentado a reemplazar el bueno de KMail por GMail, pero existía una gran característica que echaba de menos: GPG.
+
+Intrigado, había probado  el plugin FireGPG para GMail, pero no funcionaba muy bien y además no funciona en otros navegadores que no fuesen Firefox, como por ejemplo Konqueror. También había usado de vez en cuando el chat de GMail, que me permite conectar mediante Jabber contodos mis contactos de IM y además con todos los contactos de email que usan GMail, lo cual resulta útil algunas veces. Pero siendo un ávido usuario del plugin OTR de Kopete, echaba de menos la seguridad que este me ofrecía. Me di cuenta de que cada vez más datos estaban siendo almacenados y transmitidos online y que sin embargo en vez de mejorar cada vez más en el tema de la seguridad y privacidad de las comunicaciones, las aplicaciones web estaban menoscabando este aspecto.
+
+Como consecuencia, SSL ya no era suficiente como manera de proteger nuestra privacidad en la web: necesitamos un framework completo y bien diseñado para poder cifrar y descifrar datos desde el navegador. La siguiente pregunta era, por tanto, ¿cómo podría ser dicho sistema?
+
+Se me ocurrieron algunas algunas ideas sobre esto: debería utilizar implementaciones estándares de algoritmos conocidos de clave pública y/o privada, como GPG, RSA u OTR. Probablemente un binding de javascript de libcrypto sería suficiente para eso, cosa que ya provee Firefox por cierto. Pero era necesario algo más, era necesario conseguir una manera de que los usuarios tengan asegurado que los datos en claro no será accesible por nadie más que ellos, que el código Javascript y HTML no está haciendo trampas como por ejemplo acceder a los datos en claro y enviarlos al servidor web. El servidor web no debía poder acceder más que a los datos cifrados.
+
+Para conseguir algo así, se me ocurrió que la mejor manera era aislar la parte de la página que lidia con los datos cifrados de la parte de la página que maneja los datos en claro, creando una ``jaula'' de software para esta última. La idea es tener una etiqueta HTML que cree dicha jaula. Todo el código HTML, CSS o Javascript que se encuentre dentro de la jaula podría acceder al texto en claro, pero en cambio al comunicarse con el exterior, los datos tengan que ir necesariamente cifrados. De manera que:
+
+\begin{enumerate}
+ \item Su apariencia permite ser modificada mediante css (ya no estamos en los años noventa).
+ \item Los datos cifrados pueden ser procesados de forma segura y transparente en el navegador mediante Javascript sin comprometer su seguridad.
+\end{enumerate}
+
+El código externo a la ``jaula'' vería los datos que se envían y reciben de ella de forma cifrada, y sería posible comunicarse con la jaula por los métodos usuales: bien enviando un formulario por POST/GET o mediante AJAX. Por otra parte, el código Javascript que se ejecute dentro de la Jaula vería los datos cifrados en claro, pero no podría comunicarse con nadie sin cifrar antes los datos de forma segura con la aprobación del usuario.
+
+¿Porqué no es esta la solución elegida? Básicamente porque es un proyecto demasiado grande como para poder realizarlo dentro del ámbito de un proyecto de fin de carrera. Aislar en una jaula una parte del código de una página web de forma segura requiere cambios muy importantes que atacan la arquitectura de un motor de renderizado como KHTML. Además existe la problemática de cómo abordar el problema de que el usuario sepa reconocer los datos que estén cifrados o vayan estar cifrados de una manera estándar en el navegador. La solución de la ``jaula'' es muy flexible y deja mucha libertad de implementación al desarrollador de páginas web, pero eso también deteriora la facilidad del usuario de reconocer contenido seguro. Se concluye que no es una tarea imposible, de hecho probablemente sea el camino a seguir en el futuro si se consigue una implementación que resuelva estos problemas, pero no es la solución acertada para el presente proyecto.
+
+
+\section{Solución elegida}\label{solucionelegida}
+
+Una solución más simple que crear una jaula pasa también por aislar el código que lidia con los datos cifrados del código que lidia con los datos en claro, pero minimizando hasta la última expresión éste último y haciéndolo desaparecer. Como resultado, sencillamente no habrá código de la página web que pueda acceder al texto en claro, sin embargo el usuario naturalmente podrá acceder a él. Esto elimina de un plumazo los problemas que tiene la solución anterior.
+
+La manera de conseguir esto es también bien sencilla. A la hora de descifrar un texto cifrado, he elegido el elemento DIV de HTML para realizar dicho cometido. El DIV tan sólo deberá indicar que se encuentra cifrado y el sistema de cifrado mediante el atributo ``encryption''. Igualmente, he elegido el elemento INPUT type text como aquel que permite enviar texto cifrado. Para ello igualmente utilizar el atributo ``encryption'' descrito anteriormente, además de otro atributo más, ``encryption-key'', que indica cón qué clave pública debe cifrarse el texto. Igualmente, para firmar mensajes se añadiría el atributo ``signature-key''.
+
+Ejemplo: de código HTML y PHP que hacen uso de dicha extensión:
+
+\begin{verbatim}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+<head>
+<title>Encryption</title>
+</head>
+<body>
+<form action="index.php" method="post">
+<input type="text" name="field" encryption="gpg" encryption-key="35C30CBE"/>
+<input type='submit' name="go" value="Go" title="Go!"/>
+</form>
+<?php
+  if (isset($_REQUEST['field'])) {
+      echo "<div encryption=\"gpg\"">".$_REQUEST['field']."</div>";
+  }
+?>
+</body>
+</html>
+\end{verbatim} 
+
+El anterior es un ejemplo sencillo de un formulario en que el usuario puede enviar un texto que será cifrado con la clave pública ``35C30CBE'', y al enviarse luego será mostrado en un DIV cuando el usuario descifre el texto. El flujo de trabajo por tanto sería:
+
+\begin{enumerate}
+ \item El usuario entra en la página
+ \item El usuario escribe el texto que desee enviar cifrado en el recuadro de texto llamado ``field''
+ \item El usuario pulsa el botón ``Go!''
+ \item El navegador cifra el texto
+ \item El navegador envía el formulario al servidor, con el texto de ``field'' cifrado
+ \item El servidor devuelve la misma página con un elemento DIV que contiene el texto cifrado
+ \item El navegador muestra dicha página de respuesta al usuario y comprueba que el usuario tiene la clave privada capaz de descifrar dicho texto
+ \item El navegador muestra si resulta necesario un diálogo pidiéndole al usuario la frase de paso correspondiente a dicha clave privada
+ \item El usuario introduce su frase de paso
+ \item El navegador muestra la página con el texto descifrado que el usuario anteriormente había escrito
+\end{enumerate}
+
+De forma parecida funcionaría el atributo ``signature-key'', sólo que la contraseña sería solicitada al usuario a la hora de enviar el mensaje y no a la hora de recibirlo.
+
+Existen algunas restricciones de seguridad asociadas a esta extensión que hay que recalcar: 
+\begin{enumerate}
+ \item El funcionamiento debe ser tal que si se intenta acceder mediante javascript al valor del elemento input type text, no se acceda al contenido en claro sino al texto cifrado. Lo mismo debe ocurrir con el DIV cifrado.
+ \item Debido a que sólo se permite enviar texto plano mediante el input type text, y por simplificar, el elemento DIV cuando esté cifrado sólo podrá contener texto en claro.
+ \item Como mínimo la implementación debe soportar el tipo de cifrado ``gpg''.
+ \item La implementación debe encargarse de que el usuario pueda reconocer fácilmente cuándo un DIV o un input type text está usando cifrado o no.
+ \item La implementación debe encargarse de que la página web no pueda maliciosamente modificar los elementos HTML que usen esta extensión u ocultarlos, y debe de alguna manera impedir que la web intente engañar al usuario haciéndole creer que un elemento es seguro cuando no lo es.
+\end{enumerate}
+
+Esta solución no está carente de problemas, tiene sus limitaciones y no es ni mucho menos la solución final al problema; de hecho como ha sido mencionado a lo largo de esta memoria, debe de tomarse sólo como una primera aproximación. Por ejemplo, no se ha tenido en cuenta el soporte de cifrado en otros elementos de entrada de información por parte del usuario, como los text area, checkboxes, ficheros, o soporte para cifrar todo el contenido de un formulario en vez de ir elemento por elemento.
+
+Además el texto en claro mostrado por un DIV siempre será texto plano y no enriquecido con imágenes u otros elementos, y debido a que ninguna parte del código de la web puede acceder al texto en plano, no podrá de ninguna manera procesarlo. Procesarlo por ejemplo sería útil a la hora de realizar un chat cifrado, para sustituir emoticonos por imágenes de los mismos. No obstante esto también puede ser visto como una característica de seguridad (seguridad mediante simplicidad), puesto que el usuario siempre verá directamente el texto en claro y no una versión del mismo modificada por terceros, cosa que podría ocurrir en la solución de la ``jaula'' - no obstante este problema siempre podría arreglarse en la implementación ofreciendo al usuario alguna manera estándar de acceder al texto en plano sin procesar.
+
+

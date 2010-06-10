@@ -72,6 +72,6 @@ Correspondence Render tree / Linebox tree:
 
 # 1.3 Misc
 ##########
-* We should somehow chnage the z-index of the DIV element.
+* We should somehow chnage the z-index of the DIV element and also the INPUT element.
 * Worry about attacks based on selected text?
 * An icon in konqueror statusbar showing the site contains encrypted data, showing the encrypted data so that the user really knows the site is not doing any "phishing" attack, acting as if the text is being sent/received securely when not.
