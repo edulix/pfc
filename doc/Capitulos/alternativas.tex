@@ -84,28 +84,28 @@ Este conjunto de tecnologías se engloban en lo que viene a ser llamado como ``x
 
 Un sencillo y simplificado ejemplo de código XML que incluye XML Encryption podría ser el siguiente:
 
-% \begin{verbatim}
-% <?xml version='1.0' ?>  
-%  <PurchaseOrder>
-%     <Order>
-%         <Item>book</Item>
-%         <Id>123-958-74598</Id>
-%         <Quantity>12</Quantity>
-%     </Order>
-%     <Payment>
-%         <CardId>
-%             <EncryptedData Type='http://www.w3.org/2001/04/xmlenc#Content'
-%                                 xmlns='http://www.w3.org/2001/04/xmlenc#'>
-%                 <CipherData>
-%                     <CipherValue>A23B45C564587</CipherValue>
-%                 </CipherData>
-%             </EncryptedData>
-%         </CardId>
-%         <CardName>visa</CardName>
-%         <ValidDate>12-10-2004</ValidDate>
-%     </Payment>
-% </PurchaseOrder>
-% \end{verbatim}
+\begin{verbatim}
+<?xml version='1.0' ?>  
+ <PurchaseOrder>
+    <Order>
+        <Item>book</Item>
+        <Id>123-958-74598</Id>
+        <Quantity>12</Quantity>
+    </Order>
+    <Payment>
+        <CardId>
+            <EncryptedData Type='http://www.w3.org/2001/04/xmlenc#Content'
+                                xmlns='http://www.w3.org/2001/04/xmlenc#'>
+                <CipherData>
+                    <CipherValue>A23B45C564587</CipherValue>
+                </CipherData>
+            </EncryptedData>
+        </CardId>
+        <CardName>visa</CardName>
+        <ValidDate>12-10-2004</ValidDate>
+    </Payment>
+</PurchaseOrder>
+\end{verbatim}
 
 También sería posible extender xmlsig (XML Signature) y xmlenc (XML Encryption) para soportar PGP u OTR, pero esto aumentaría aun más la complejidad que conlleva el uso de xmlsec. Existen críticas que atacan a la seguridad de XML en general y a la idoneidad de utilizar la canonización XML en particular como un front end para el firmado y cifrado de datos XML debido a su complejidad, requerimiento inherente de su procesamiento, y bajo rendimiento \cite{critica_xmlsec}.
 

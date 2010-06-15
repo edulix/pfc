@@ -1,2 +1,223 @@
 \chapter{Manual}\label{manual}
 
+\section{Manual de usuario}
+
+Esta es la documentación del proyecto que implementa una extensión HTML de cifrado punto a punto para el motor de renderizado KHTML de KDE. Este capítulo está destinado para que aprendas cómo utilizar la extensión y poder crear tu propia aplicación web con ella.
+
+Para poder hacer uso de esta extensión es necesario parchear la librería khtml. Explicamos en la siguiente sección cómo realizar este importante paso.
+
+\section{Introducción}
+
+La extensión está desarrollada sobre la versión de desarrollo de la librería khtml puesto que si se hiciese sobre la versión estable sería más difícil continuar su desarrollo al entrar en conflicto el parche con las novedades incluídas en próximas versiones. Concretamente la revisión de KDE con la que es funcional el parche es la 1132763. Como requisito indispensable para poder hacer uso de la extensión actualmente se encuentra compilar la versión de desarrollo de KDE y luego parchear kdelibs.
+
+Se explicará cómo compilar y configurar el entorno de desarrollo de KDE para la distribución Arch Linux. Es posible por supuesto configurar KDE para que pueda ser usado en otras distribuciones y los pasos necesarios para hacerlo se detallan en el wiki para desarrolladores de KDE, techbase \cite{build-kde4}.
+
+He de aclarar que esta no es la única forma de compilar KDE. También es posible hacer uso de por ejemplo el script kdesvn-build que facilita mantenerse actualizado a la última versión, y también es posible utilizar una cuenta a parte para el desarrollo de KDE. Todas esas posibilidades se explican en techbase \cite{build-kde4}.
+
+\section{Instalar paquetes requeridos}
+
+Para instalar las dependencias necesarias para compilar KDE en Arch Linux, hay que ejecutar el siguiente comando con permisos de superusuario:
+
+\begin{verbatim}
+ pacman -Sy subversion bzip2 libxslt libxml2 libjpeg \
+           libungif shared-mime-info mesa boost dbus \
+           openssl pkgconfig xine-lib clucene redland \
+           gpgme hal cmake qt qca libical lcms \
+           automoc4 akonadi eigen taglib soprano \
+           strigi qimageblitz phonon kdesdk git
+\end{verbatim} 
+
+Es necesario tener activado el repositorio [extra] para poder instalar dichas dependencias, entre las que incluyen las librerías incluidas en kdesupport. También he incluido git como dependencia porque lo necesitaremos para descargar el código del presente proyecto.
+
+\section{Configuración del entorno}
+
+Configuraremos el sistema para que convivan tanto la posible instalación de KDE estable como la versión ``trunk'' o de desarrollo. Asumiremos que todo lo relativo a la versión de desarrollo de KDE lo albergaremos en el directorio ``proyectos/kde4''. Crearemos un script en bash llamado ``environment.sh'' en ese directorio, con permisos de ejecución, y que contenga las siguientes líneas:
+
+\begin{verbatim}
+export KDEDIR=$HOME/proyectos/kde4
+export KDETMP=/tmp/$USER-kde4
+
+mkdir -p $KDETMP
+export KDEVARTMP=/var/tmp/$USER-kde4
+export KDEDIRS=$KDEDIR
+export PKG_CONFIG_PATH=$KDEDIR/lib/pkgconfig:$PKG_CONFIG_PATH
+export KDEDIRS=$KDEDIR
+
+export PATH=$QTDIR/bin:$KDEDIR/bin:$PATH
+export YACC='byacc -d'
+export LD_LIBRARY_PATH=$QTDIR/lib/:$KDEDIR/lib/:$LD_LIBRARY_PATH
+export CMAKE_LIBRARY_PATH=$KDEDIR/lib/:$CMAKE_LIBRARY_PATH
+export CMAKE_INCLUDE_PATH=$KDEDIR/include:$CMAKE_INCLUDE_PATH
+export CMAKE_PREFIX_PATH=$KDEDIR:$CMAKE_PREFIX_PATH
+
+export KDE_BUILD=$KDEDIR/src/build/
+export KDE_SRC=$KDEDIR/src/
+export KDEHOME=$HOME/.kde-trunk
+
+export KDE_COLOR_DEBUG=1
+export QTEST_COLORED=1
+
+ 
+##
+# A function to easily build the current directory of KDE.
+#
+# This builds only the sources in the current ~/{src,build}/KDE subdirectory.
+# Usage: cs KDE/kdebase && cmakekde
+#   will build/rebuild the sources in ~/src/KDE/kdebase
+#
+function cmakekde {
+        if test -n "$1"; then
+                # srcFolder is defined via command line argument
+                srcFolder=$1
+        else
+                # get srcFolder for current dir
+                srcFolder=`pwd | sed -e s,$KDE_BUILD,$KDE_SRC,`
+        fi
+        # we are in the src folder, change to build directory
+        # Alternatively, we could just use makeobj in the commands below...
+        if [ "$srcFolder" = `pwd` ]; then
+                cb
+        fi
+        # to enable tests, add -DKDE4_BUILD_TESTS=TRUE to the next line.
+        # you can also change "debugfull" to "debug" to save disk space.
+        # added "nice make..." to allow the user to work on the box while
+        # compiling
+        nice -n 15 cmake $srcFolder -DKDE4_BUILD_TESTS=TRUE -DCMAKE_INSTALL_PREFIX=$KDEDIR \
+               -DPYTHON_SITE_PACKAGES_DIR:PATH=~/.local/lib/python2.6/site-packages \
+        -DCMAKE_BUILD_TYPE=debugfull && \
+        make -j2 VERBOSE=1 && \
+        make install;
+}
+ 
+##
+# A function to easily change to the build directory.
+# Usage: cb KDE/kdebase
+#   will change to $KDE_BUILD/KDE/kdebase
+# Usage: cb
+#   will simply go to the build folder if you are currently in a src folder
+#   Example:
+#     $ pwd
+#     /home/user/src/KDE/kdebase
+#     $ cb && pwd
+#     /home/user/build/KDE/kdebase
+#
+function cb {
+        # Make sure build directory exists.
+        mkdir -p $KDE_BUILD
+ 
+        # command line argument
+        if test -n "$1"; then
+                cd $KDE_BUILD/$1
+                return
+        fi
+        # substitute src dir with build dir
+        dest=`pwd | sed -e s,$KDE_SRC,$KDE_BUILD,`
+        if test ! -d $dest; then
+                # build directory does not exist, create
+                mkdir -p $dest
+        fi
+        cd $dest
+}
+ 
+##
+# Change to the source directory.  Same as cb, except this
+# switches to $KDE_SRC instead of $KDE_BUILD.
+# Usage: cs KDE/kdebase
+#       will change to $KDE_SRC/KDE/kdebase
+# Usage: cs
+#   will simply go to the source folder if you are currently in a build folder
+#   Example:
+#     $ pwd
+#     /home/user/build/KDE/kdebase
+#     $ cs && pwd
+#     /home/user/src/KDE/kdebase
+#
+function cs {
+        # Make sure source directory exists.
+        mkdir -p $KDE_SRC
+ 
+        # command line argument
+        if test -n "$1"; then
+                cd $KDE_SRC/$1
+        else
+                # substitute build dir with src dir
+                dest=`pwd | sed -e s,$KDE_BUILD,$KDE_SRC,`
+                if [ $dest = `pwd` ]; then
+                cd $KDE_SRC
+                else
+                cd $dest
+                fi
+        fi
+}
+ 
+export DISPLAY=:0.0
+\end{verbatim}
+
+\section{Compilación de KDE}
+
+Ahora pasaremos a compilar todo el sistema base KDE que usaremos. Pese a que por si acaso las instalamos anteriormente, para asegurarnos que las librerías incluidas en el paquete kdesupport están suficientemente actualizadas también las compilaremos. Los comandos que debemos ejecutar en la consola con nuestro usuario son los siguientes:
+
+\begin{verbatim}
+cd ~/proyectos/kde4
+. environment.sh # carga las variables de entorno y funciones útiles usadas para compilar KDE_BUILD
+cs # entra en el directorio ~/proyectos/kde4/src y lo crea si no existiese.
+
+# Ahora descargaremos el software que usaremos de KDE:
+svn checkout svn://anonsvn.kde.org/home/kde/trunk/KDE/kdesupport 
+svn checkout svn://anonsvn.kde.org/home/kde/trunk/KDE/kdelibs
+svn checkout svn://anonsvn.kde.org/home/kde/trunk/KDE/kdebase
+svn checkout svn://anonsvn.kde.org/home/kde/trunk/KDE/kdepimlibs
+svn checkout svn://anonsvn.kde.org/home/kde/trunk/KDE/kdepim
+
+# y ahora lo compilaremos e instalaremos:
+cd kdesupport; cmakekde; cd ..
+cd kdelibs; cmakekde; cd ..
+cd kdebase; cmakekde; cd ..
+cd kdepimlibs; cmakekde; cd ..
+cd kdepim; cmakekde; cd ..
+\end{verbatim}
+
+Ya tenemos todo lo necesario de KDE compilado. Hemos compilado e instalado khtml y una navegador que lo utiliza, konqueror. Podemos comprobar que eso es así ejecutando el comando which konqueror, que debería de devolver algo así:
+
+\begin{verbatim}
+$ which konqueror
+/home/edulix/proyectos/kde4/bin/konqueror 
+\end{verbatim}
+
+\section{Compilación del proyecto}
+
+Ahora proseguiremos aplicando el parche a khtml y recompilando khtml con el parche:
+
+\begin{verbatim}
+git clone http://github.com/edulix/pfc.git # descargamos el código del presente proyecto
+cd kdepim/libkleo
+patch -p0 < ../../pfc/find_kleo.patch # parcheamos libkleo
+make install # recompilamos y reinstalamos libkleo
+
+cd ../../kdelibs/khtml
+patch -p0 < ../../pfc/khtml.patch # parcheamos khtml
+make install # recompilamos y reinstalamos khtml
+\end{verbatim}
+
+Ha resultado necesario recompilar antes libkleo para que pueda accederse a dicha librería externamente, en nuestro caso desde khtml. Luego hemos recompilado y reinstalado khtml con el parche que implementa el presente proyecto aplicado. Y con esto ya hemos terminado: tenemos un sistema funcional en el que podemos utilizar la nueva extensión HTML descrita en esta memoria en aplicaciones web seguras.
+
+El navegador que utilizaremos para usar la extensión de khtml es Konqueror. De aquí en adelante siempre que vayamos a ejecutar konqueror, previamente arrancaremos un terminal y configuraremos el entorno si no lo hemos hecho antes en ese terminal. Ejemplo:
+
+\begin{verbatim}
+$ . ~/proyectos/kde4/environment.sh
+$ which konqueror # comprobamos que el binario konqueror es el correcto
+/home/edulix/proyectos/kde4/bin/konqueror 
+$ konqueror
+\end{verbatim}
+
+El mismo comando (\verb|. ~/proyectos/kde4/environment.sh|) nos servirá para poder ejecutar cualquier aplicación de KDE que hayamos compilado, como por ejemplo kleopatra.
+
+\section{Creación de claves GPG}
+
+Evidentemente necesaremos tener un par de claves pública y privada para poder utilizar la extensión. Podemos usar la aplicación kleopatra para este fin. He aquí capturas de pantalla de los pasos a seguir para crear una nueva clave GPG con dicha aplicación:
+
+% TODO
+
+\section{Aplicación de prueba}
+
+% TODO: instalar dependencias, configurar app de prueba, capturas de la app en uso

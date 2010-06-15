@@ -45,6 +45,7 @@
 \usepackage{boxedminipage}%para hacer cuadros vacíos
 \usepackage{multicol}%insertar tablas
 \usepackage{color}%definir colores
+\usepackage{hyperref}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%para código fuente%%%%%%%%%%%%%%%%%%%%%
 \usepackage{listings}

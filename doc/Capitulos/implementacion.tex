@@ -1,6 +1,362 @@
 \chapter{Implementación}\label{implementacion}
-\section{Funcionamiento de KHTML}\label{khtml}
+
+En el presente capítulo se detalla cómo se procedió a la hora de realizar la implementación del proyecto, consistente en la modificación del motor de renderizado KHTML para que soportase la extensión de HTML detallada en el capítulo anterior.
+
+Debido a que el proyecto se basa en la modificación del código de un software ya existente (KHTML), resulta preciso primero explicar el funcionamiento interno del mismo, y la primera sección de este capítulo se dedica a dicha tarea. Seguidamente, se pasa a explicar los detalles de implementación del soporte de cirrado en el campo input de tipo ``text'' y las medidas de seguridad que se tuvieron en cuenta. Finalmente, se detalla la forma en que se ha añadido al elemento DIV de HTML soporte de texto cifrado y las medidas de seguridad que se han aplicado.
+
+\section{Funcionamiento interno de KHTML}\label{khtml}
+
+Esta sección intenta dar una visión general sobre el funcionamiento interno de la librería KHTML. Es principalmente una traducción del inglés al español del documento DESIGN.html existente en el proyecto kdelibs y se encuentra bajo la misma licencia que el mencionado documento. Según cuenta el autor del texto, lo escribió porque la librería se había convertido en algo bastante grande, y es difícil al principio encontrarse agusto con su código fuente. Eso no significa que después de leer esta descripción se comprenda completamente KHTML tras leer el presente texto, pero sí que le será más fácil leer el código. 
+
+Tengo cierta experiencia en adrentarme en el código fuente en C++ de software con muchas líneas de código, comprenderlo y modificarlo para llevar a cabo el objetivo marcado; la primera vez que hice esto fue en el primer Concurso Universitario de Software Libre, cuando junto a Daniel García Moreno hice mi primera contribución en KDE, consistiendo en añadir la característica de poder recuperar pestañas recientemente cerradas en Konqueror. También en su día hice cierto parche para VirtualBox. Ambos proyectos están en C++ y son de grandes dimensiones, y de hecho Konqueror y KHTML están bastante relacionados. No obstante el código de KHTML nunca antes lo había tocado. La descripción que aquí presento traducida del funcionamiento interno de esta librería resultó crucial para conseguir el éxito en el desarrollo del proyecto. 
+
+La librería KHTML forma parte a su vez del conjunto de librerías Kdelibs, que son las librerías principales usadas en el entorno de escritorio KDE. A su vez, todo KDE está basado en el toolkit gráfico Qt, que permite a KDE abstraerse bastante del hardware y las primitivas de renderizado (pintado) que hay que utilizar según en qué sistema se ejecute el software (Linux, Unix, Windows, Symbian..). Qt está programado en C++ y la inmensa mayoría del software de KDE también, incluida la librería KHTML. Se escapa del objetivo de este documento explicar el funcionamiento de Qt  cite{qt-official-webpage} o de C++  cite{pensar-en-cpp}, y se supone su conocimiento.
+
+La librería está compuesta de varias partes. Básicamente, cuando se usa la librería, se crea una instancia de un KHTMLPart, y se le mandan datos. Eso es más o menos lo que ha de saberse si lo único que se quiere es usar khtml para otra aplicación. Sin embargo si se quiere comenzar a hackear khtml, he aquí un compendio de los objetos que serán construídos cuando por ejemplo se ejecuta el programa testkhtml con una url como argumento.
+
+KHTMLPart crea una instancia de un KHTMLView (que hereda a su vez de QScrollView), el widget que muestra todo realmente. Al mismo tiempo se crea un árbol DOM a partir del HTML o XML encontrado en el fichero especificado.
+
+Describamos esto con un ejemplo:
+
+khtml hace uso del DOM (Document Object Model) para almacenar el documento en una estructura de tipo árbol. Imaginemos un código HTML como el que sigue:
+
+\begin{verbatim}
+<html>
+    <head>
+        <style>
+            h1: { color: red; }
+        </style>
+    </head>
+    <body>
+        <H1>
+            some red text
+        </h1>
+        more text
+        <p>
+            a paragraph with an
+            <img src="foo.png">
+            embedded image.
+        </p>
+    </body>
+</html>
+\end{verbatim} 
+
+En lo que sigue veremos cómo esta entrada es procesada paso por paso para finalmente generar la salida visible que se muestra en la pantalla. Se describirá el proceso como si las etapas ocurriesen una tras otra de manera secuencial, para que sea más fácil comprenderlo. Sin embargo en realidad para conseguir una salida visible en la pantalla lo antes posible (desde la tokenización hasta la construcción y maquetación del árbol de renderizado) ocurren más o menos en paralelo.
+
+\section{Analizadores léxico y sintáctico}\label{tokenizerandparser}
+
+Lo primero que ocurre cuando la libreria abre un fichero es que se analiza léxica y sintácticamente, trabajos realizados por el ``tokenizer'' y el ``parser'', respectivamente.
+
+Lo primero que ocurre cuando comienza a analizarse un nuevo documento es que el objeto DocumentImpl* para los documentos XML/XHTML (o sino el objeto HTMLDocumentImpl* si es HTML) es creado por el KHTMLPart en la función begin. Un objeto de tipo Tokenizer* es creado tan pronto como la función DocumentImpl::open() es llamada por el KHTMLPart, cosa que también ocurre en la función begin() mencionada anteriormente, tanto si se trata de un XMLTokenizer como de un HTMLTokenizer. El analizador léxico de XML (XMLTokenizer) usa las clases de QXML en Qt para analizar el documento, y su interfaz SAX para introducir los elementos en el árbol DOM de khtml.
+
+En el caso de HTML, el analizador léxico se encuentra en khtmltokenizer.cpp. El ``tokenizer'' usa los contenidos de un fichero HTML como entrada y desgrana el contenido  en una lista enlazada de elementos llamados tokens, reconociendo entidades y etiquetas HTML. Así mismo, el texto entre las etiquetas de comienzo y finalización es manejado de forma especial para algunas etiquetas concretas. La distinción estriba en la manera en que los espacios, el manejo de líneas, entidades HTML y otros tags son manejados dentro de dichas etiquetas.
+
+El analizador léxico está basado completamente en estados que pueden cambiar carácter a carácter. Todo el texto que se pasa al analizador léxico se convierte a tokens directamente. El texto puede ser pasado al anlizador por completo carácter por carácter (lo cual no es muy eficiente) o bien por bloques de cualquier tamaño variable.
+
+El analizador léxico HTML (clase HTMLTokenizer) crea un HTMLParser que interpreta el torrente de tokens que genera el analizador léxico y construye el árbol de nodos que representan el documento de acuerdo al DOM.
+
+\subsection{El árbol DOM}\label{khtml_dom}
+
+Analizando el documento HTML mostrado anteriormente se general el siguiente árbol DOM de clases en khtml:
+
+\begin{verbatim}
+HTMLDocumentElement
+  |--> HTMLHeadElement
+  |       \--> HTMLStyleElement
+  |              \--> CSSStyleSheet
+  \--> HTMLBodyElement
+         |--> HTMLHeadingElement
+         |      \--> Text
+         |--> Text
+         \--> HTMLParagraphElement
+                |--> Text
+                |--> HTMLImageElement
+                \--> Text
+\end{verbatim}
+
+No obstante estas clases son únicamente las interfaces que se crean para acceder al árbol DOM. Los datos realmente se almacenan en las clases con el sufijo Impl, que son aquellas que implementan la lógica interna de los elementos. Así pues, tenemos un árbol interno de clases de ``implementación'' con la siguiente estructura:
+
+\begin{verbatim}
+HTMLDocumentElementImpl*
+  |--> HTMLHeadElementImpl*
+  |       \--> HTMLStyleElementImpl*
+  |              \--> CSSStyleSheetImpl*
+  \--> HTMLBodyElementImpl*
+         |--> HTMLHeadingElementImpl*
+         |      \--> TextImpl*
+         |--> TextImpl*
+         \--> HTMLParagraphElementImpl*
+                |--> TextImpl*
+                |--> HTMLImageElementImpl*
+                \--> TextImpl*
+\end{verbatim}
+
+Se utiliza un esquema de recuento de referencias para asegurarse de que todos los objetos son eliminados en caso de que el objeto padre sea eliminado, siempre que no exista una clase de tipo interfaz que contenga una referencia a dicha clase de implementación.
+
+Las clases de tipo intefaz (aquellas sin el sufijo Impl) se definen dentro de la estructura de directorios del código de khtml en el subdirectorio dom/, y no es usada internamente por khtml. El único lugar donde este tipo de clases es usado es en los bindings a Javascript, que las usa para acceder al árbol DOM. La gran ventaja de tener esta separación entre las clases de interfaz y de implementación es que es posible tener varios objetos de tipo interfaz que apuntan a la misma implementación. Esto cumple con el requisito de compartimiento explícito exigido por la especificación DOM.
+
+Otra ventaja es que debido a que las clases de implementación son púramente internas y no son accesibles mediante la interfaz pública de la librería, los hackers de khtml tienen mucha más libertad para realizar cambios a la implementación sin romper la compatibilidad binaria de la librería.
+
+Existen casi una correspondencia total entre las clases de tipo interfaz con las de implementación. En el caso de las de implementación se han añadido algunas clases intermedias más, que no son visibles desde fuera por razonez varias, como por ejemplo conseguir más fácilmente compartir características entre clases o reducir el uso de memoria.
+
+Usando C++, se puede accer a todo el árbol DOM desde fuera de KHTML usando las clases de tipo interfaz. Una cosa que ha sido omitida en el texto anterior son las hojas de estilo definidas en el elemento <style> (como ejemplo de una hoja de estilo) y el elemento imagen (como ejemplo de un recurso externo que debe ser cargado). De esto tratran las siguientes dos subsecciones.
+
+
+\subsection{CSS}\label{khtml_css}
+
+El contenido del elemento <style> (en el caso del código HTML de ejemplo se trata de la regla ``h1 { color: red; }'') será pasado al objeto HTMLStyleElementImpl. Esto objeto crea a su vez un objeto CSSStyleSheetImpl al que le pasa dichos datos. El analizador sintáctico CSS recogerá los datos, y creará una estructura DOM para CSS similar a la que se crea al analizar código HTML. Esto será utilizado más adelante para definir el aspecto de los elementos HTML del árbol DOM.
+
+De hecho eso de ``más adelante'' es relativo porque como dijimos anteriormente, esto ocurre parcialmente en paralelo con la construcción del árbol DOM.
+
+\subsection{Cargando Objetos externos}\label{khtml_external_objs}
+
+Algunos elementos HTML (como <img>, <link>, <object>, etc) contienen referencias a objetos externos que tienen que ser cargados. Esta tarea es realizada por el cargador (clase ``Loader'') y clases relacionadas (ver archivos misc/loader.*). Los objetos que puedan necesitar cargar elementos externos heredan de CachedObjectClient, y pueden pedir al cargador (que también actúa como una memoria caché) que descargue el objeto que necesita de la web.
+
+Una vez el cargador tiene disponible el objeto requerido, se lo notificará al CachedObjectClient correspondiente, y el cliente entonces puede procesar los datos recibidos.
+
+\subsection{Pintando en pantalla}\label{khtml_render}
+
+Ahora una vez tenemos el árbol DOM, y las hojas de estilo asociadas y los objetos externos, ¿cómo conseguimos que realmente todo sea mostrado en la pantalla?
+
+Ese es el objetivo del motor de renderizado, que está completamente basado en CSS. De lo primero que se encarga es de recoger todas las hojas de estilo que se aplican al documento y crear una buena lista de reglas de estilo que deben aplicarse a los elementos de la página. Esto se hace en la clase CSSStyleSelector. Se basa en la hoja de estilo por defecto de HTML (definida en css/html4.css), una hoja de estilo opcional definida por el usuario, y todas las hojas de estilo del documento, y las combina en una buena lista de reglas de estilo optimizada para una mayor velocidad de acceso. Las reglas exactas de cómo estas hojas de estilo deben ser aplicadas a HTML o a documentos XML pueden encontrarse en la especificación de CSS 2 y 3.
+
+Una vez tenemos esta lista, podemos obtener un objeto de tipo RenderStyle para cada elemento DOM a través del CSSStyleSelector llamando a la función ``sytyleForElement(DOM::ElementImpl *)''. El objeto de estilo describe en una forma compacta todas las propiedades CSS que deben ser aplicadas al nodo en cuestión.
+
+Después de eso, comienza la generación del árbol de renderizado/pintado. Usando el objeto de estilo, el nodo DOM crea el objeto de renderizado correspondiente (todos estos están definidos en el subdirectorio ``rendering'') y lo añade al árbol de pintado.  Esto crea otra estructura de tipo árbol, que a rasgos generales se parece a la estructora del árbol DOM del cual proviene, pero que también puede contener algunas diferencias significativas. En primer lugar, las llamadas cajas anónimas \cite{css2.1}, que no tienen un homólogo en el árbol DOM, puede que sean insertadas en el árbol de renderizado para satisfacer los requerimientos de DOM. En segundo lugar, la propiedad ``display'' del estilo afecta a qué tipo de objeto de renderizado se escoge para representar a un objeto DOM.
+
+En el ejemplo del comienzo al que venimos refiriéndonos, obtendríamos el siguiente árbol de pintado:
+
+
+\begin{verbatim}
+RenderRoot*
+  \--> RenderBody*
+         |--> RenderFlow* (<H1>)
+         |      \--> RenderText* ("some red text")
+         |--> RenderFlow* (anonymous box)
+         |      \--> RenderText* ("more text")
+         \--> RenderFlow* (<P>)
+                |--> RenderText* ("a paragraph with an")
+                |--> RenderImage*
+                \--> RenderText* ("embedded image.")
+\end{verbatim}
+
+Una llamada a la función ``layout()'' del objeto RenderRoot (que es aquel del cual cuelgan todos los demás en el árbol de renderizado) consigue que el árbol de pintado se distribuya a sí mismo en el espacio disponible (en anchura) dada por la vista donde se pintará la página (KHTMLView). Después de esto, el método ``KHTMLView::drawContents()'' puede llamar a ``RenderRoot::print()''  con los parámetros adecuados para realmente pintar el documento.
+
+Esta descripción no es 100\% correcta cuando se realiza un analizado sintáctico incremental al cargar inicialmente el documento, pero es exactamente lo que ocurre cuando se redimensiona la vista. Como se puede ver en el árbol de renderizado, la conversión realizada ha resultado en la eliminación de las referencias al elemento <head>` del código HTML, y se ha insertado un objeto anónimo de renderizado que engloba a la cadena ``more text''. De nuevo, porqué esto ha sido necesario es explicado en la especificación de CSS \cite{css2.1}.
+
+
+\subsection{Estructura de directorios}\label{khtml_dirs}
+
+Una pequeña explicación de la estructura de directorios en khtml:
+
+\begin{description}
+ \item[css] Contiene todas las cosas relevantes a la parte CSS de DOM Level 2 (únicamente las clases de implementación, el analizador sintáctico CSS, y el código para crear el objeto RenderStyle dado un nodo y las hojas de estilo vigentes.
+ \item[dom] Contiene toda la API DOM externa (las clases de interfaz DOM) para todo el DOM.
+ \item[ecma] Los bindings javascript para el DOM y khtml.
+ \item[html] la parte HTML del DOM (únicamente las clases de implementación), los analizadores léxico y sintáctico HTML y una clase que define el DTD a usar en HTML (utilizada principalmente por el analizador sintáctico).
+ \item[java] Todas las cosas relacionadas con Java.
+ \item[misc] Código variado necesitado en khtml.  Contiene el cargador de imágenes, algunas definiciones variaas y la clase decodificadora que convierte datos a unicode.
+ \item[rendering] Todo lo relacionado con llevar el árbol DOM y las declaraciones CSS a la pantalla. Contiene la definición de los objetos utilizados en el árbol de pintado, el código de distribución del espacio de los elementos, y los objetos RenderStyle.
+ \item[xml] La parte XML de la implementación DOM, el analizador sintáctico XML.
+ \end{description}
+ 
+\subsection{Manejo de excepciones}\label{khtml_trycatch} 
+
+Para conseguir una librería más ligera, el uso de excepciones de C++ está solo habilitado en el subdirectorio ``dom/'', debido a que el uso de excepciones es obligado según la API DOM. En el resto del código de khtml se pasa un flag de error (usualmente llamado ``exceptionCode''), y la clase que es parte del subdirectorio ``dom/'' comprueba este flag y si está activo lanza la excepción.
+
+
+\subsection{Palabras finales...}\label{khtml_final} 
+
+Todo lo anterior sólo es una rápida introducción a la manera en que khtml muestra un fichero XML/HTML en la pantalla. No es ni mucho menos una descripción completa ni 100\% correcta. Muchos problemas quedaron en el tintero; para muestra una lista de las cosas que faltan:
+
+\begin{itemize}
+ \item El decodificador que convierte un torrente de datos entrante en texto unicode
+ \item La interacción con Konqueror u otras aplicaciones.
+ \item Javascript.
+ \item Reflow dinámico y cómo utilizar el árbol DOM para manipular la salida visual de khtml.
+ \item manejo de eventos/ratón.
+ \item Las interacciones reales cuando se analiza incrementalmente.
+ \item Java.
+\end{itemize}
+
+No obstante esta pequeña introducción sirve como primera aproximación a khtml y cómo funciona.
+
+khtml es actualmente una librería bastante grande y toma cierto tiempo comprender su funcionamiento. No hay que frustrarse si no se comprende inmediatamente cómo funciona. Por otra parte, es actualmente una de las librerías que se usan mucho que probablemente sea la que tenga un mayor número de bugs (incluso si muchas veces es difícil saber si cierto comportamiento es realmente erróneo).
+
+\section{Introducción al parche de khtml}\label{khtml_patch_intro}
+
+En la sección anterior hemos visto cual es el funcionamiento interno de KHTML. Esto es crucial para poder comprender de qué manera hemos desarrollado la implementación de la extensión HTML propuesta. Esta implementación se materializa principalmente en un parche (khtml.patch) de varios miles líneas de código. Pero podemos desgranar el parche conceptualmente según las capas que toca. 
+
+Nuestra intención es añadir varios atributos a HTML (encryption, encryption-key, etc), que sólo podrán ser utilizados en algunos elementos (div, input), y que tendrán por supuesto ciertas repercusiones a nivel de comportamiento del árbol DOM, del árbol interno, y del árbol de pintado o renderizado.
+
+\section{Tokenizer}\label{khtml_patch_tokenizer}
+
+Para que los atributos que añadimos no sean extraños a khtml, tenemos que ir por partes, y lo primero que tenemos que hacer es que el analizador léxico de HTML los reconozca, pues es la primera etapa en la que khtml se encontrará con ellos. Para ello simplemente hace falta añadir esos atributos a la lista de atributos del ``tokenizer'', lista que se puede encontrar en el fichero ``misc/htmlattrs.in''.
+
+Como es el caso en muchos analizadores léxicos, el de khtml no se escribe totalmente a mano sino que está automatizado. Dado la lista de atributos antes mencionada y mediante un script que se encuentra en ``misc/makeattrs'', se genera y actualiza el código en C++ del analizador léxico que lee los atributos. No sólo eso, sino genera los ficheros de cabecera en los que se definen las etiquetas y su valor numérico correspondiente para cada atributo, que son utilizadas para referirse a ellos a lo largo de todo khtml. 
+
+Existe otro script análogo para cambiar la lista de tags reconocidos por el ``tokenizer'' o analizador léxico, pero debido a que nuestro parche no necesitamos de ningún tag especial, no es preciso utilizarlo.
+
+También hizo falta volver a ejecutar el script python ``misc/gennames.py'' que genera los ficheros htmlnames.h y htmlnames.cpp que se encarga de asociar a cada ``define'' (macro de preprocesador) de cada etiqueta o atributo la cadena que corresponde a dicho token, de manera que el parser pueda reconocer la cadena y que pueda utilizarse en khtml.
+
+Ejecutar estos scripts de generación y actualización del código del analizador léxico es por tanto indispensable porque de lo contrario khtml seguirá sin tener ningún conocimiento sobre estos nuevos atributos y no podríamos hacer referencia a ellos ni utilizarlos de ninguna manera.
+
+\section{Parser}\label{khtml_patch_parser}
+
+Como vimos en la sección anterior, el analizador sintáctico o ``parser`` se encarga de recibir la salida en forma de lista de tokens generada por el analizador léxico y general el árbol DOM de uso interno por khtml. A medida que recibe tokens, el parser instancia las clases *Impl según va necesitando y va añadiéndoles los atributos correspondientes y colgándolas de sus clases padres.
+
+No ha sido necesario modificar el parser puesto que éste está diseñado de forma genérica tal que cualquier atributo se le añade a la clase *Impl correspondiente y es ésta la encargada de lidiar con dicho atributo, de saber si es válido y procesarlo o por lo contrario generar un error.
+
+\section{Librería de cifrado y descifrado}\label{khtml_patch_parser}
+
+Debido a que ya la comprensión del código de KHTML (para poder luego saber modificarlo) es un trabajo ímprobo, y a que el objetivo del proyecto es probar y demostrar la viabilidad del concepto más que ser una implementación completa, se ha optado por simplicidad implementar un sólo tipo de cifrado, GPG.
+
+Existen multitud de librerías que nos permiten cifrar y descifrar GPG, pero he optado por utilizar libkleo puesto que es la librería de KDE que también se usa en Kleopatra, el gestor claves de KDE. Está diseñada con las librerías de KDE y Qt, usando clases como QString, QList, señales y slots de Qt, etc. Además a la hora de descifrar o de firmar un mensaje muestra un mensaje con diálogos de KDE, y por tanto tiene una máxima integración con el entorno de escritorio objetivo.
+
+Sin embargo no son todo ventajas: libkleo está diseñada únicamente con Kleopatra en mente y no para ser utilizada por terceros. Esto no significa que no sea posible hacerlo porque la interfaz esté acoplada a Kleopatra, sino que mantener una librería de propósito general conlleva mantener también una interfaz estable compatible binariamente entre revisión menores, además de tener que revisar toda la interfaz previamente para asegurarse de que es correcta. Cuando les pregunté por estos asuntos, estas son las razones que los mantenedores y desarrolladores actuales de la librería esgrimieron como razón por la cual no exportaban las cabeceras de la librería para que otros pudiesen utilizarlas, y la razón por la cual libkleo se encontraba en el paquete kdepim (donde normalmente sólo se encuentran programas de PIM) y no en kdepimlibs (donde se recopilan librerías de PIM de uso general).
+
+Otro problema es que mientras que khtml se encuentra en kdelibs, libkleo no. Si sus desarrolladores estuviesen dispuestos a abrirla para su uso por parte de terceros, para usarla en kdelibs requeriría bien mover libkleo a kdelibs, o eliminar su uso de kdelibs y meterla en kdesupport, que son las librerías en que kdelibs se puede apoyar.
+
+Aun con todo, debido a que el propósito de al menos esta primera versión del parche a khtml no es ser incluido en la versión oficial de khtml por sus limitaciones y más bien tendrá un uso y distribución limitados, no importan mucho estos problemas. Resuelto a utilizar libkleo por sus ventajas, he realizado un pequeño parche que permite exportar sus cabeceras de manera que las pueda utilizar en khtml. Por supuesto no he movido libkleo a kdesupport, por lo que tras aplicar este parche, necesario para poder luego aplicar el de khtml, hace falta compilar kdepimlibs y todas sus dependencias (entre ellas kdelibs que incluye khtml), para luego volver a compilar khtml con soporte de libkleo. Cómo hacer esto se detalla en el capítulo dedicado al manual de instalación.
+
+Con el fin de detectar si existe soporte de libkleo o no, también he realizado algunos cambios al sistema de compilación CMake que usa khtml (y es usado en todo KDE actualmente). Al inspeccionar el parche a khtml, llama la atención el extensivo uso de condicionales del preprocesador del tipo \verb|#ifdef KLEO_SUPPORT|. Esta regla es la que comprueba si existe soporte de libkleo. De esa manera aun con el parche aplicado es posible compilar khtml sin problemas cuando libkleo aun no está disponible, aunque evidentemente todo el código relativo al presente proyecto no será compilado. El uso de este tipo de directivas de preprocesador es muy típico en estos casos.
+
+Para aprender a utilizar la librería libkleo el autor desarrolló un pequeño programa de KDE llamado kleocypher que permite cifrar y descifrar textos con ella. Esto me permitió aprender a utilizar en un entorno controlado las mencionadas anteriormente instrucciones del preprocesador, la detección de libkleo, leer las claves GPG con clave privada disponible y sus detalles como nombre e email, cifrar texto, descifrar texto y comprobar errores al respecto. He aquí una pequeña captura de pantalla de dicha utilidad:
+
+\figura{0.8}{img/kleocypher}{Kleocypher}{kleocypher}{}
+
 \section{Implementación de Input Type Text}\label{input}
-\subsection{Medidas de seguridad}\label{input_security}
+
+Recordemos el ejemplo del capítulo anterior de un código HTML que usa la extensión e HTML desarrollada:
+
+\begin{verbatim}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" dir="ltr">
+<head>
+<title>Encryption</title>
+</head>
+<body>
+<form action="index.php" method="post">
+<input type="text" name="field" encryption="gpg" encryption-key="35C30CBE"/>
+<input type='submit' name="go" value="Go" title="Go!"/>
+</form>
+<?php
+  if (isset($_REQUEST['field'])) {
+      echo "<div encryption=\"gpg\"">".$_REQUEST['field']."</div>";
+  }
+?>
+</body>
+</html>
+\end{verbatim}
+
+Cuando el analizador sintáctico el el elemento input del código anterior, crea un HTMLInputElementImpl, y luego a medida que las va leyendo va añadiéndole a éste elemento sus atributos. Esa clase de implementación se encarga de todos los tipos de elemento input: linea de texto, ficheros, botones, elementos ocultos, etc, y en ella es donde se debe añadir la lógica relacionada con el elemento seguro input de tipo linea de texto. 
+
+HTMLInputElementImpl contiene una variable donde almacena el valor (atributo value, variable \verb|m_value|) actual del elemento. Ahora también contiene otra variable con el valor en texto plano (descifrado del elemento), así como referencias a si elemento está encriptado o firmado y las claves de firmado y cifrado a utilizar. La idea es que la variable \verb|m_value| siempre contenga el valor ``inseguro'', y \verb|m_encryptedValue| el valor seguro. Cuando el elemento no sea de tipo texto o no use nuestra extensión, estas nuevas variables no se usarán.  Sin embargo, cuando el texto deba estar por ejemplo cifrado, \verb|m_value| contendrá el valor en claro, y \verb|m_encryptedValue| el valor cifrado. Todas las funciones de HTMLInputElementImpl que acceden a \verb|m_value| han sido modificadas para que lo hagan mediante la función \verb|value()|, y la función value devolvería \verb|m_encryptedValue| en este caso. Así mismo, cada vez que el usuario modifica el valor del cuadro de texto seguro, \verb|m_encryptedValue| es actualizado.
+
+La  idea es que de ninguna manera de forma externa sea posible acceder al valor en claro, para mantener la seguridad. Los puntos en que se acceden al valor en claro - por ejemplo cuando es actualizado o cuando es pintado en pantalla - están controlados y acotados como medida de seguridad. Existe una función plainTextValue() que devuelve el texto en claro, que no es usada más que por la clase LineEditWidget que es la que se encarga de pintar el elemento input de tipo texto.
+
+En el árbol de renderizado, el homólogo al elemento HTMLInputElementImpl dependiendo del tipo que sea es de una clase u otra. Como acabamos de mencionar, en el caso que nos ocupa la clase encargada es LineEditWidget. El primer paso fue hacer que a la hora de pintar el texto del LineEdit, éste accediese al texto en claro siempre, por tanto llamando a la función plainTextValue().
+
+No obstante es necesario que el usuario pueda saber reconocer a simple vista que el LineEdit es seguro. Para ese caso se implementaron varias medidas de seguridad en el LineEditWidget cuando está en modo seguro:
+
+\begin{itemize}
+ \item El color de fondo por defecto no es blanco sino de un color amarillento característico.
+ \item Ni el color de fondo ni el color del texto se pueden modificar por Javascript ni CSS.
+ \item Dentro del propio widget se añade el icono de un candado de seguridad, en el que haciendo clic se muestra un popup con información acerca de la seguridad de la clave del destinatario de la imagen.
+ \item Maximizar su Z-Index para que el widget nunca pueda ser ocultado por otros elementos de la página.
+\end{itemize}
+
+En la siguiente figura podemos ver el resultado gráfico de todo ello:
+
+\figura{0.8}{img/secure-lineeditwidget-khtml}{}{secure-lineeditwidget-khtml}{}
+
 \section{Implementación de Div}\label{div}
-\subsection{Medidas de seguridad}\label{div_security}
+
+Una vez implementado el elemento input type text, ya era posible conseguir enviar de forma segura datos cifrados mediante GPG a través de khtml. Pero esto era sólo la primera parte de la extensión. También era necesario añadir la posibilidad de mostrar esos mismos datos que habían sido enviados previamente al usuario, de forma igualmente segura y transparente al usuario y al desarrollador. 
+
+Descifrar el contenido de un DIV resultó bastante más complejo que lo anterior. Esto es debido a que un DIV no es un elemento autocontenido, una hoja del árbol DOM, sino que por el contrario es un contenedor de toda suerte de subelementos. Un DIV de HTML es un nodo más en el árbol DOM, y puede contener texto plano, pero también imágenes, otros DIVs, listas.. cualquier cosa. Esta complejidad de los DIV hace que también se creen cajas anónimas con fines de maquetado.
+
+En este caso era más fácil asegurarse que nadie iba a acceder al texto en claro puesto que por defecto la función value() ya devolvía el texto cifrado o firmado. Por otra parte, para simplificar y también como medida de seguridad que se detalla en el capítulo anterior, el elemento DIV en modo cifrado sólo acepta contener un primer subelemento y de tipo texto. Por seguridad si un DIV que contenga texto cifrado si también contiene otros elementos, serán ignorados y no incluídos en el arbol DOM ni en el árbol de renderizado puesto que se genera a partir del árbol DOM. Hay varias razones detrás de esta decisión:
+
+\begin{itemize}
+ \item El elemento input anterior sólo es capaz de cifrar texto y no otro tipo de elementos como imágenes, ficheros, etc.
+ \item Simplifica en gran medida el renderizado y el descifrado, al no tener que descifrar más que un texto y pintarlo.
+\end{itemize}
+
+Para seguir, pongamos un ejemplo de elemento DIV que contenga texto cifrado:
+
+\begin{verbatim}
+<div encryption="gpg">
+-----BEGIN PGP MESSAGE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+hMwDn3tUOzXDDL4BBf97gggiLj4ZxR+IBQ8QMoxUGzJLq3WNPM1g562kE8yqff+y
+zgMsCEuCJyAftWzV5VC/lgHpJF2IUguw4sOdNOiozvNxbOv2OeJIVXdJIZun29OM
+UMaKxSLMZdrFjS5JlbQsMuqtNLnv7/tDmyZQQdTlWRvVG2GcjmPJsLg2iFjHFT21
+vz5VoO9Jt0ZUENtdJwwk+v99zyy8xmFloMS+aSjdVqlYiqQR5gUFXHeeXKBK/tcr
+lShwcY6dCtt/RxKwSFnSWgGAyI309m3ebLnB/4N94jqfAJ7w7vheHGeGBt0/CEgS
+547rDc+O6cyhqtS2kwRe5bCDaoiPvHHbsgoAxm27eznKNQvrre5cKzaXePmqBWim
+3q7+01ha714WsQ==
+=Xgbn
+-----END PGP MESSAGE-----
+</div>
+\end{verbatim} 
+
+El árbol DOM de este DIV sería:
+
+\begin{verbatim}
+HTMLDivElementImpl
+  \ TextImpl
+\end{verbatim}
+
+De tal manera que el texto cifrado realmente se encuentra en TextImpl. Y como hemos simplificado los elementos DIVs ``seguros'' de manera que sólo soporten texto en plano, esa misma será la estructura de todos los DIVs que contengan texto cifrado.
+
+El primer paso que realicé es modificar el elemento HTMLDivElementImpl, que como toda clase de implementación se encarga de la lógica del elemento que maneje, para soportar texto cifrado y/o firmado con GPG. Este proceder es el más lógico puesto que las clases de implementación ya las conocía debido a HTMLInputElementImpl,y procedí de forma parecida, modificando la función parseAttribute() para que manejase el token \verb|ATTR_ENCRYPTION| de tipo gpg, añadiendo una variable que indicase si el elemento está en modo seguro. Igualmente, en TextImpl añadí una variable con el texto cifrado, y funciones de acceso y modificación del texto en claro.
+
+Teniendo en cuenta que el texto que fue cifrado con nuestra clave pública es ``Lorem ipsum dolor sit amet'', el árbol de renderizado correspondiente al ejemplo del DIV cifrado sería el siguiente:
+
+\begin{verbatim}
+[RenderBlock
+  [RenderText "Lorem ipsum dolor sit amet."]
+] 
+\end{verbatim}
+
+Para conseguir esto, hubo que indicarle a RenderText que accediese al texto en claro del DIV, y por supuesto acotar que sólo sea ese el caso en que se permitiese acceder al texto en claro de un DIV en khtml: la función plainTextValue() de TextImpl es protected y RenderText es una clase amiga.
+
+No obstante este no es realmente el último árbol que se genera, sino que antes de pintar en pantalla se genera un árbol de cajas por línea. Para comprenderlo, veamos una representación conceptual del resultado de pintar ese texto en pantalla:
+
+\begin{verbatim}
+  _________________
+|Lorem ipsum dolor|
+|sit amet.        |
+|_________________|
+\end{verbatim}
+
+Como vemos, suponiendo que la anchura disponible para el DIV fuese limitada y el texto no cupiese una sóla linea, tendría necesariamente que ocupar una más. Debido a cómo funciona HTML y CSS según sus especificaciones y por motivos de maquetación, en khtml cada línea se trata de forma separada. Se genera una árbol más, el árbol de cajas de líneas (LineBox Tree en inglés), que en el caso de antes sería el siguiente:
+
+\begin{verbatim}
+[RootInlineBox
+  [InlineTextBox "Lorem ipsum dolor"]
+]
+[RootInlineBox
+  [InlineTextBox "sit amet."]
+]
+\end{verbatim}
+
+Y eso es lo que finalmente se pinta en pantalla. No obstante a la hora de conseguir que el texto se pinte y correctamente en pantalla y la maquetación se haga con el texto en claro y no con el texto cifrado, basta con que el elemento del árbol de renderizado RenderText contenga el texto en claro, y él ya se encarga de pasárselo a los elementos de tipo InlineTextBox y se realiza con ese mismo texto la maquetación. Es importante hacer notar que estas clases que tienen acceso al texto claro son todas internas de khtml y en ningún caso es posible acceder a ellas externamente desde HTML, CSS o Javascript.
+
+Bien, hemos conseguido exitósamente que el texto cifrado se pinte en claro en pantalla, de forma totalmente transparente al usuario. Cuando el texto necesite ser pintado, la función plainTextValue() de TextImpl será llamada y entonces si aun el texto no ha sido descifrado, lo será, y si es necesario se le pedirá la frase secreta con la que libkleo descifrará la clave privada que necesita para poder descifrar el texto.
+
+No obstante aun falta por añadir alguna indicación gráfica al usuario que le permita reconocer que el texto ahí mostrado es seguro, ha sido descifrado y sólo él puede acceder al mismo; que ni siquiera el administrador de la página que está mostrando dicho texto puede acceder al texto en claro. También faltan añadir algunas medidas de seguridad.
+
+La indicación gráfica que he elegido en este caso es mostrar el texto descifrado (o firmado) siempre dentro de un recuadro con reborde verde, fondo blanco, y texto de color negro. Esta vez en vez de mostrar un icono en el que al pinchar saliese información, se puede acceder a dicha información haciendo clic derecho en cualquier parte del DIV ``seguro'' y accediendo a una opción llamada ``Detalles del mensaje cifrado...'' que mostrará un diálogo con dichos detalles. El razonamiento detrás de esta decisión se basa en que habría que hacer cambios demasiado extensos para poder añadir un icono de seguridad al DIV cifrado y por otra parte quizás cargase demasiado la página ver un candado de seguridad en todos los elementos descifrados, si por ejemplo se trata de un chat y se han recibido muchos mensajes.
+
+Entre las medidas de seguridad están algunas parecidas a las aplicadas anteriormente: el color de fondo, color de letra, y el color de los rebordes de un DIV cifrado no son modificables. Además, el ZIndex también es máximo de manera que el DIV no es ocultable por otros elementos. Un usuario que vea un mensaje cifrado sabrá reconocerlo siempre por las indicaciones gráficas características que le acompañan, y para asegurarse de que el DIV no es una imitación siempre puede ver si se encuentra en el menú contextual del DIV la entrada ``Detalles del mensaje cifrado...'' y ver ahí el mensaje original, y los detalles del receptor o de quien firmó el mensaje.
+
+Se muestran algunas capturas de pantalla de las mencionadas características:
+
+\figura{0.5}{img/khtml-secure-div}{Resultado de cómo se visualiza un DIV cifrado mostrando el texto en claro del ejemplo}{khtml-secure-div}{}
+
+\figura{1}{img/khtml-secure-div-contextual-menu}{Menú contextual de un DIV cifrado mostrando la opción Details of Encrypted Message..}{khtml-secure-div-contextual-menu}{}
+
+\figura{1}{img/khtml-secure-div-message-details-dialog}{Diálogo mostrando los detalles de un mensaje contenido en un DIV cifrado}{khtml-secure-div-message-details-dialog}{}

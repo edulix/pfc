@@ -1,8 +1,126 @@
-\chapter{An\'alisis temporal y costes de desarrollo}\label{anatemporal}
+\chapter{Análisis temporal y costes de desarrollo}\label{anatemporal}
 
-\section{An\'alisis temporal}
-	
-\section{Costes de desarrollo}		
-	
+\section{Análisis temporal}
 
-	
+En los apartados anteriores se ha descrito fielmente todo el proceso que ha dado como resultado la implementación de la extensión de HTML. Una vez cubierta la descripción del proceso, pasaremos a tratar en detalle la planificación seguida para la realización de este proyecto, así como un desglose de las labores más importantes. Dicha tarea la desarrollaremos a lo largo del capítulo que nos ocupa.
+
+Para comenzar con el análisis temporal, hemos de distinguir todas las etapas que nos han ocupado durante la   elaboración de este proyecto. Un desglose de estas etapas sería:
+
+\begin{description}
+ \item[Aprendizaje y documentación sobre KHTML] El autor del proyecto tenía buen conocimiento de las tecnologías que se usan en KDE como son C++, Qt, parte de kdelibs o CMake. No obstante desconocía por completo el código de khtml y su funcionamiento interno, y tampoco conocía la librería libkleo que sirve de interfaz para todos los asuntos relacionados con GPG. Lo primero que tuvo que hacer es estudiar el código de khtml para conocer la viabilidad del proyecto y cómo abordarlo, así como buscar una librería que sirviese para manejar GPG y aprender a usarla.
+ \item[Creación de kleocypher] Tras decir que iba a usar libkleo, me dediqué primero a conocer esta herramienta de ejemplo que hace uso de ella y establecer cómo iba a detectar con CMake la disponibilidad de la librería.
+ \item[Implementación del elemento input cifrado] Este fue el primer gran paso a la hora de implementar la extensión de HTML. Fue bastante costoso temporalmente hablando porque fue mi primera contribución al código de khtml y no tenía soltura con él, pero el resultado fue satisfactorio.
+ \item[Implementación del elemento div cifrado] Después de unos meses habiendo dejado el proyecto de lado por motivos laborales, lo retomé para implementar lo que quedaba de la extensión html, que es el elemento div cifrado. Debido al tiempo que había pasado, tuve que volver a ponerme al día además de aprender más sobre khtml por la dificultad añadida que entrañaba la implementación del elemento div.
+ \item[Aplicación de prueba y testeo de la extensión] El fin del proyecto es en gran medida demostrar que la extensión propuesta es válida y puede ser útil, y la mejor manera de demostrarlo fue creando una aplicación web, en concreto un chat basado en django, que lo utilizase. Además esta aplicación sirvió como banco de pruebas de la extensión.
+ \item[Elaboración de los capítulos de la memoria] Durante esta fase hemos realizado la redacción de los capítulos que conforman la memoria de este proyecto.
+ \end{description}
+
+La planificación temporal consistirá en una estimación del tiempo dedicado a cada una de las fasesde desarrollo del proyecto. Para ello asignaremos a cada una de esas fases las dos estimaciones siguientes:
+    
+\begin{description}
+ \item[Estimación Inicial] la cual es empleada en los inicios del desarrollo. Suele ser poco exacta, pero se usan como primera aproximación para la viabilidad del proyecto.
+
+ \item[Estimación Final] la cual expresa la duración y el esfuerzo real empleado.
+\end{description}
+ 
+Para realizar una evaluación de la exactitud de la estimación se realiza una comparación de los valores reales  con los valores estimados, teniendo en cuenta el error relativo medio. Tomando $RE =\frac{A - E}{A}$, donde A  representa el valor real y E el valor estimado previamente, calculamos el error relativo medio mediante la expresión:
+    
+\begin{displaymath}
+\left(\frac{1}{n}\right) \sum_{i=1}^{n} RE   
+\end{displaymath}
+
+Las estimaciones de cada fase se han realizado en días, considerando una dedicación del autor de una media de 4 horas al día. Dicho esto obtendríamos las estimaciones mostradas en la Tabla~\ref{tab:planif}.                                       Analizando los datos de la misma obtenemos un error relativo medio de 14.02 \%.                                                     
+                                                                
+                                                                
+% Aprendizaje y documentación sobre KHTML
+% Creación de kleocypher
+% Implementación del elemento input cifrado
+% Implementación del elemento div cifrado
+% Aplicación de prueba y testeo de la extensión
+% Elaboración de los capítulos de la memoria
+\begin{table}
+    \centering
+        \begin{tabular}{|l|r|r|r|}
+            \hline
+            \textbf{Tarea} & \textbf{Est. Inicial} & \textbf{Est. Final} & \textbf{RE}\\ \hline \hline
+             Aprendizaje y documentación sobre KHTML  & 25 días & 36 días & 30.5 \%  \\
+             Creación de kleocypher & 18 días & 19 días & 5.3 \% \\
+             Implementación del elemento input cifrado & 22 días & 32 días & 30.1 \%  \\
+             Implementación del elemento div cifrado & 31 días & 42 días & 30.9 \%  \\
+             Aplicación de prueba y testeo de la extensión & 12 días & 14 días & 14.3  \% \\
+             Elaboración capítulos memoria & 8 días & 10 días & 20 \% \\
+             Elaboración de los capítulos de la memoria  & 5 días & 5 días & 0 \% \\       
+            \hline
+        \end{tabular}
+    \caption{Planificación del proyecto}
+    \label{tab:planif}
+\end{table}
+
+
+
+\section{Costes de desarrollo}
+
+En esta sección estudiaremos detalladamente los costes que han supuesto la creación del proyecto. Comenzaremos diciendo que no ha sido necesaria inversión alguna destinada a la adquisición de dispositivos específicos, hardware o software. Este hecho ha supuesto una gran ventaja a la hora de elaborar el proyecto que nos  ocupa, ya que los costes se centrarán unicamente en los campos de costes de personal y costes indirectos.
+   
+\subsection{Inversiones}
+
+En lo que respecta a la inversión para la adquisición de dispositivos específicos, tenemos que decir que en nuestro caso dicha inversión ha sido nula. Esto se debe a que no requeriamos de ningún material específico para materializar en khtml.
+
+
+\subsection{Costes de software}
+
+En lo que respecta los costes de software usado para el desarrollo del proyecto, he de indicar primeramente que todo el software empleado es free software (software libre) disponible en Internet de forma gratuita. Esto supone un coste cero en lo que respecta a este apartado.
+    
+Además del coste cero, el sofware libre también nos proporciona muchas otras ventajas. Este tipo de software  brinda libertad a los usuarios sobre su producto adquirido y por tanto, una vez obtenido, puede ser usado, copiado, estudiado, modificado y redistribuido libremente. Según la Free Software Foundation, el software libre se refiere a la libertad de los usuarios para ejecutar, copiar, distribuir, estudiar, cambiar y mejorar el software; de modo más preciso, se refiere a cuatro libertades de los usuarios del software: la libertad de usar el programa, con cualquier propósito; de estudiar el funcionamiento del programa, y adaptarlo a las necesidades; de distribuir copias, con lo que puede ayudar a otros; de mejorar el programa y hacer públicas las mejoras, de modo que toda la comunidad se beneficie. El software libre suele estar disponible gratuitamente, o al precio de coste de la distribución a través de otros medios; sin embargo no es obligatorio que sea así, por ende no hay que asociar la idea de software libre a software gratuito.  
+     
+Entre el software usado podemos citar entre otros:
+    
+\begin{itemize}
+    \item Arch Linux, como distribución Linux.
+    \item KDE, como sistema base sobre el cual se ha desarrollado.
+    \item Kdevelop, entorno de desarrollo utilizado.
+    \item CMake, como sistema de compilación.
+    \item Kile, como editor \LaTeX{} sobre Linux.
+    \item GDB, como depurador de software.
+    \item Okular como visor de documentos PDF.
+\end{itemize}
+
+\subsection{Costes de hardware}
+
+En el proceso de desarollo no ha sido necesaria la adquisición de equipos informáticos ni de ninguna clase de hardware que no tuviese ya disponible. El hardware utilizado es el portátil personal del autor. 
+
+\subsection{Costes indirectos}
+
+Dentro de esta sección dedicada a los costes indirectos incluiremos el gasto producido por material consumible (CD, impresora, papel, etc), luz consumida, limpieza de la zona de desarrollo, etc. He considerado adecuado que un incremento del 5 \% en el presupuesto total sería representativo de este gasto.
+    
+\subsection{Costes de personal}
+
+Para calcular el coste personal he utilizado como referencia los sueldos brutos estipulados mínimos fijados en el BOE del 21 de Marzo de 2010, en el Anexo III. El sueldo anual para un Titulado de grado medio es de 14637.56 euros ó 6.53 $\frac{euros}{hora}$. 
+
+También es necesario tener en cuenta el número total de horas dedicadas a la elaboración de este proyecto. Dicho dato tiene un valor de 672 horas, representado por el trabajo realizado por una persona durante 168 días dedicando una media de 4 horas/día.
+    
+De esta forma el coste personal supondrá una cuantía de:
+    
+\begin{center}
+$672 horas \cdot 6.53 \frac{euros}{hora} = 4388.16 euros$.
+\end{center}
+
+\subsection{Presupuesto}
+    
+Haciendo uso de los costes especificados anteriormente, obtendremos el presupuesto mostrado en la Tabla~\ref{tab:presup}.
+
+\begin{table}
+    \centering
+        \begin{tabular}{|p{7cm}|r|}
+        \hline
+        Inversiones & 0 euros \\
+        Costes Software & 0 euros \\
+        Costes Hardware & 0 euros \\
+        Costes Personal & 4388.16 euros \\
+        Costes Indirectos & 319.31 euros \\ \hline  
+        \textbf{TOTAL} & 4707.47 euros \\   
+        \hline  
+        \end{tabular}
+    \caption{Presupuesto del proyecto}
+    \label{tab:presup}
+\end{table}
