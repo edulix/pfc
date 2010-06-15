@@ -3500,7 +3500,7 @@ Index: html/html_formimpl.cpp
 +}
 +
 +void HTMLInputElementImpl::encryptOnly()
-+{    
++{
 +    QByteArray plainText = m_value.string().toAscii();
 +    const Kleo::CryptoBackend::Protocol * const  backend =
 +        Kleo::CryptoBackendFactory::instance()->protocol( GpgME::OpenPGP );
@@ -3527,7 +3527,17 @@ Index: html/html_elementimpl.cpp
 ===================================================================
 --- html/html_elementimpl.cpp	(revision 1132763)
 +++ html/html_elementimpl.cpp	(working copy)
-@@ -151,6 +151,14 @@
+@@ -60,6 +60,9 @@
+     : ElementImpl( doc )
+ {
+     m_htmlCompat = doc && doc->htmlMode() != DocumentImpl::XHtml;
++#ifdef KLEO_SUPPORT
++    m_encryptionType = NO_ENCRYPTION;
++#endif
+ }
+ 
+ HTMLElementImpl::~HTMLElementImpl()
+@@ -151,6 +154,14 @@
      case ATTR_NAME:
          document()->incDOMTreeVersion(DocumentImpl::TV_IDNameHref);
          break;
@@ -3542,7 +3552,7 @@ Index: html/html_elementimpl.cpp
      case ATTR_CONTENTEDITABLE:
          setContentEditable(attr);
          break;
-@@ -507,6 +515,7 @@
+@@ -507,6 +518,7 @@
  
  void HTMLElementImpl::setInnerHTML( const DOMString &html, int &exceptioncode )
  {
@@ -3550,7 +3560,7 @@ Index: html/html_elementimpl.cpp
      if (id() == ID_SCRIPT || id() == ID_STYLE) {
          // Script and CSS source shouldn't be parsed as HTML.
          removeChildren();
-@@ -531,6 +540,7 @@
+@@ -531,6 +543,7 @@
  
  void HTMLElementImpl::setInnerText( const DOMString &text, int& exceptioncode )
  {
@@ -3953,14 +3963,15 @@ Index: rendering/render_line.cpp
 ===================================================================
 --- rendering/render_line.cpp	(revision 1132763)
 +++ rendering/render_line.cpp	(working copy)
-@@ -982,6 +982,15 @@
+@@ -982,6 +982,16 @@
      if (object()->style()->htmlHacks() || object()->style()->visibility() != VISIBLE)
          return;
  
 +#ifdef KLEO_SUPPORT
-+    if (firstChild()->isInlineTextBox()) {
++    if (firstChild() && firstChild()->isInlineTextBox()) {
 +        InlineTextBox* inlineTextBox = static_cast<InlineTextBox*>(firstChild());
-+        if (inlineTextBox->renderText()->element()->isEncrypted()) {
++        if (inlineTextBox->renderText() && inlineTextBox->renderText()->element() &&
++            inlineTextBox->renderText()->element()->isEncrypted()) {
 +            return;
 +        }
 +    }
@@ -4018,12 +4029,13 @@ Index: rendering/render_box.cpp
  
      if(isRoot())
          return paintRootBoxDecorations(paintInfo, _tx, _ty);
-@@ -448,7 +456,27 @@
+@@ -448,7 +456,29 @@
     if (!isBody() || !document()->isHTMLDocument() || document()->documentElement()->renderer()->style()->hasBackground())
          paintAllBackgrounds(paintInfo.p, style()->backgroundColor(), style()->backgroundLayers(), cr, _tx, _ty, w, h);
  
 -    if(style()->hasBorder()) {
-+   bool border = style()->hasBorder(); 
++   bool border = style()->hasBorder();
++#ifdef KLEO_SUPPORT
 +   if (element() && element()->firstChild() && element()->firstChild()->isTextNode()) {
 +        TextImpl* textImpl = static_cast<TextImpl*>(this->element()->firstChild());
 +        if (textImpl->isEncrypted()) {
@@ -4043,20 +4055,23 @@ Index: rendering/render_box.cpp
 +            border = true;
 +        }
 +    }
++#endif
 +    if(border) {
          paintBorder(paintInfo.p, _tx, _ty, w, h, style());
      }
  }
-@@ -462,6 +490,12 @@
+@@ -462,6 +492,14 @@
  
  void RenderBox::paintOneBackground(QPainter *p, const QColor& c, const BackgroundLayer* bgLayer, QRect clipr, int _tx, int _ty, int w, int height)
  {
++#ifdef KLEO_SUPPORT
 +    if (element() && element()->firstChild() && element()->firstChild()->isTextNode()) {
 +        TextImpl* textImpl = static_cast<TextImpl*>(element()->firstChild());
 +        if (textImpl->isEncrypted()) {
 +            style()->setBackgroundColor(Qt::white);
 +        }
 +    }
++#endif
      paintBackgroundExtended(p, c, bgLayer, clipr, _tx, _ty, w, height,
                              borderLeft(), borderRight(), paddingLeft(), paddingRight(),
                              borderTop(), borderBottom(), paddingTop(), paddingBottom());
@@ -4763,7 +4778,7 @@ Index: xml/dom_textimpl.cpp
 +
 +        QByteArray cipherText = str->string().toAscii();
 +        QByteArray plainText;
-+        GpgME::DecryptionResult res = decryptJob->exec(cipherText, plainText);
++        m_decryptionResult = decryptJob->exec(cipherText, plainText);
 +
 +        if(plainText.isEmpty()) {
 +            kDebug(6035) << "Couldn't decrypt the message";
