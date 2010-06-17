@@ -10,9 +10,9 @@ Para poder hacer uso de esta extensión es necesario parchear la librería khtml
 
 La extensión está desarrollada sobre la versión de desarrollo de la librería khtml puesto que si se hiciese sobre la versión estable sería más difícil continuar su desarrollo al entrar en conflicto el parche con las novedades incluídas en próximas versiones. Concretamente la revisión de KDE con la que es funcional el parche es la 1132763. Como requisito indispensable para poder hacer uso de la extensión actualmente se encuentra compilar la versión de desarrollo de KDE y luego parchear kdelibs.
 
-Se explicará cómo compilar y configurar el entorno de desarrollo de KDE para la distribución Arch Linux. Es posible por supuesto configurar KDE para que pueda ser usado en otras distribuciones y los pasos necesarios para hacerlo se detallan en el wiki para desarrolladores de KDE, techbase \cite{build-kde4}.
+Se explicará cómo compilar y configurar el entorno de desarrollo de KDE para la distribución Arch Linux. Es posible por supuesto configurar KDE para que pueda ser usado en otras distribuciones y los pasos necesarios para hacerlo se detallan en el wiki para desarrolladores de KDE, techbase \cite{build_kde4}.
 
-He de aclarar que esta no es la única forma de compilar KDE. También es posible hacer uso de por ejemplo el script kdesvn-build que facilita mantenerse actualizado a la última versión, y también es posible utilizar una cuenta a parte para el desarrollo de KDE. Todas esas posibilidades se explican en techbase \cite{build-kde4}.
+He de aclarar que esta no es la única forma de compilar KDE. También es posible hacer uso de por ejemplo el script kdesvn-build que facilita mantenerse actualizado a la última versión, y también es posible utilizar una cuenta a parte para el desarrollo de KDE. Todas esas posibilidades se explican en techbase \cite{build_kde4}.
 
 \section{Instalar paquetes requeridos}
 
@@ -214,10 +214,102 @@ El mismo comando (\verb|. ~/proyectos/kde4/environment.sh|) nos servirá para po
 
 \section{Creación de claves GPG}
 
-Evidentemente necesaremos tener un par de claves pública y privada para poder utilizar la extensión. Podemos usar la aplicación kleopatra para este fin. He aquí capturas de pantalla de los pasos a seguir para crear una nueva clave GPG con dicha aplicación:
+Evidentemente necesaremos tener un par de claves pública y privada para poder utilizar la extensión. Podemos usar la aplicación kleopatra para este fin. Adjuntamos una captura de pantalla del diálogo con los pasos a seguir para crear una nueva clave GPG con dicha aplicación.
 
-% TODO
+\figura{1}{img/kleopatra-new-key-dialog}{Diálogo para crear una nueva clave}{kleodialog}{}
 
-\section{Aplicación de prueba}
+El primer paso es abrir la aplicación Kleopatra y luego pulsar Ctrl+N para abrir el diálogo de crear un nuevo certificado \ref{kleodialog}. Elegit la opción OpenPGP, escribir nuestro nombre e email, pulsar siguiente, y crear nuestra clave.
 
-% TODO: instalar dependencias, configurar app de prueba, capturas de la app en uso
+\section{Aplicación de prueba: Sweetter}
+
+La aplicación de prueba que finalmente desarrollamos fue un plugin para el software de microblogging Sweetter. Para instalar sweetter necesitamos instalar primero sus dependencias:
+
+\begin{verbatim}
+sudo pacman -S django python-pysqlite
+\end{verbatim} 
+
+Para descargarnos la última versión de django del repositorio de gitorious donde se alberga, ejecutamos el siguiente comando en el directorio donde vayamos a descargarlo:
+
+\begin{verbatim}
+git clone git://gitorious.org/sweetter/sweetter.git
+\end{verbatim}
+
+Esto nos creará un directorio ``sweetter/'' donde se descargó la aplicación. Ahora vamos a instalarlo. Al crear la base de datos nos pedirá cierta información como si queremos crear un usuario, le diremos que sí, y daremos los datos del usuario que queramos crear. Esto lo haremos ejecutando el comando \verb|python manage.py syncdb|:
+
+\begin{verbatim}
+$ python manage.py syncdb
+Creating table auth_permission
+Creating table auth_group
+Creating table auth_user
+Creating table auth_message
+Creating table django_admin_log
+Creating table django_content_type
+Creating table django_session
+Creating table django_site
+Creating table django_flatpage
+Creating table ublogging_profile
+Creating table ublogging_option
+Creating table ublogging_post
+Creating table groups_group
+Creating table recoverpw_recover
+Creating table karma_karma
+Creating table karma_karmasweet
+Creating table karma_vote
+Creating table karma_log
+Creating table followers_follower
+Creating table privatetimeline_privatesweet
+Creating table jabberbot_jabber
+
+You just installed Django's auth system, which means you don't have any superusers defined.
+Would you like to create one now? (yes/no): yes
+Username (Leave blank to use 'edulix'): edulix
+E-mail address: edulix@gmail.com
+Password: 
+Password (again): 
+Superuser created successfully.
+Installing index for auth.Permission model
+Installing index for auth.Message model
+Installing index for admin.LogEntry model
+Installing index for flatpages.FlatPage model
+Installing index for ublogging.Option model
+Installing index for ublogging.Post model
+Installing index for karma.KarmaSweet model
+Installing index for karma.Vote model
+Installing index for karma.Log model
+Installing index for followers.Follower model
+Installing index for privatetimeline.PrivateSweet model
+Installing index for jabberbot.Jabber model
+\end{verbatim}
+
+Ya tenemos Sweetter instalado. Ahora podemos ejecutarlo, de la siguiente manera:
+
+\begin{verbatim}
+$ python manage.py runserver
+Validating models...
+0 errors found
+
+Django version 1.1.1, using settings 'sweetter.settings'
+Development server is running at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+\end{verbatim}
+
+Como podemos observar, ya tenemos el servidor sweetter ejecutándose. Si entramos en el navegador en http://127.0.0.1:8000/ veremos la página de inicio de sweetter, y nos permite autenticarnos. Para ello usaremos el usuario y contraseña que elegimos anteriormente. Haciendo clic en la barra de urls superior en ``Profile'' podemos configurar cual es el identificador de nuestra clave GPG, que utilizaremos para recibir mensajes privados cifrados.
+
+Lamentablemente kleopatra no nos muestra para las claves GPG su identificador corto, pero verlo ejecutando el siguiente comando:
+
+\begin{verbatim}
+$ gpg --list-keys
+pub   1024D/7198F146 2010-06-15 [expires: 2010-07-14]
+uid                  Eduardo Robles Elvira <edulix@gmail.com>
+sub   1024g/0F8F7B8D 2010-06-15 
+\end{verbatim}
+
+\figura{1}{img/sweetter-configure-gpg-key}{Configurando la clave privada del usuario desde su perfil}{sweetter-configure-gpg-key}{}
+
+En nuestro caso el identificar sería 7198F146. Lo introducimos en la página de ``Profile'' de sweetter en el campo correspondiente, como vemos en la figura \ref{sweetter-configure-gpg-key}. 
+
+Ahora podemos ya recibir mensajes cifrados. No hace falta crear otro usuario para que nos envíe un mensaje privado, porque podemos enviarnos un mensaje privado a nosotros mismos. Podemos por ejemplo hacer clic en la barra lateral donde pone ``Send private message'', y el recuadro donde se suele escribir el sweet se convierte en un recuadro donde podemos escribir el mensaje que nos queremos enviar. Luego, podemos ver el mensaje cifrado haciendo clic en la barra de urls superior en la opción ``Private timeline''. El resultado puede verse en \ref{private-timeline-example}.
+
+\figura{1}{img/private-timeline-example}{El mensaje cifrado que previamente nos habíamos enviado aparece en el Private timeline}{private-timeline-example}{}
+
+Para poder enviar un mensaje cifrado a cualquier otro usuario, debemos de tener su clave pública instalada en el sistema. Desde Kleopatra podemos importar claves públicas desde el menu ``File'', tanto desde un fichero como desde un servidor, únicamente es necesario conocer algún dato como el nombre y apellidos o la dirección de correo electrónico de aquella persona cuya clave querramos obtener.
